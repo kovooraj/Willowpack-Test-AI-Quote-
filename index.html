@@ -127,7 +127,9 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
 .send svg{width:16px;height:16px}
 .send.round{width:40px;padding:0;justify-content:center}
 
-.quick{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px;justify-content:center}
+.quick{display:flex;flex-wrap:wrap;gap:10px;justify-content:center}
+.hero .quick-label{margin:30px 0 12px;font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--faint)}
+.hero .callme-wrap{margin-top:36px;padding-top:24px;border-top:1px solid var(--line);max-width:420px;margin-left:auto;margin-right:auto}
 .chip{border:1px solid var(--line-2);background:var(--surface);border-radius:999px;padding:8px 14px;font-size:14px;font-weight:500;color:var(--muted);cursor:pointer;transition:color .15s,border-color .15s,background-color .15s,transform .15s}
 .chip:hover{color:var(--text);border-color:var(--green);transform:translateY(-1px)}
 .assure{display:flex;gap:18px;flex-wrap:wrap;margin-top:24px;justify-content:center;font-size:14px;color:var(--muted)}
@@ -262,8 +264,10 @@ footer .logo{height:22px;opacity:.85}
 .chip.slot.rec::after{content:"Earliest";font-size:11px;font-weight:600;color:var(--green);margin-top:4px}
 .chip.slot.rec.picked::after{color:#fff}
 .history{display:none;flex:1;overflow-y:auto;padding:24px 20px}
-.callme-link{display:inline-flex;align-items:center;gap:6px;margin-top:18px;border:none;background:none;color:var(--green);font:600 15px/1 Figtree,sans-serif;cursor:pointer}
+.callme-link{display:inline-flex;align-items:center;gap:8px;padding:10px 16px;border-radius:999px;border:none;background:none;color:var(--green);font:600 15px/1 Figtree,sans-serif;cursor:pointer}
 .callme-link svg{width:16px;height:16px}
+.callme-link:hover{background:color-mix(in srgb,var(--green) 10%,transparent)}
+#callBtn{display:none}#callBtn.show{display:inline-flex}
 .cm-back{position:fixed;inset:0;z-index:80;background:rgba(5,10,8,.55);display:none;align-items:center;justify-content:center;padding:20px}
 .cm-back.open{display:flex}
 .cm{width:100%;max-width:420px;background:var(--surface);color:var(--text);border:1px solid var(--line);border-radius:22px;padding:24px;box-shadow:var(--shadow);animation:rise .3s cubic-bezier(.2,.8,.2,1)}
@@ -440,12 +444,13 @@ footer .logo{height:22px;opacity:.85}
           <label class="sr" for="heroInput">Describe what you’re packaging</label>
           <textarea id="heroInput" rows="1" placeholder="e.g. 5,000 stand-up pouches for whole-bean coffee"></textarea>
           <div class="composer-row">
-            <span class="hint">Press Enter to start</span>
+            <span class="hint" id="heroHint">No account needed · Price breaks in seconds · A real rep finalizes it</span>
             <button class="send" type="submit" id="heroSend" disabled>Get my quote
               <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8h10M9 4l4 4-4 4"/></svg>
             </button>
           </div>
         </form>
+        <p class="quick-label">Or start with a format</p>
         <div class="quick" aria-label="Start with a format">
           <button class="chip" type="button" data-open="I need a quote for stand-up pouches.">Stand-up pouches</button>
           <button class="chip" type="button" data-open="I need a quote for roll labels.">Roll labels</button>
@@ -453,12 +458,7 @@ footer .logo{height:22px;opacity:.85}
           <button class="chip" type="button" data-open="I need a quote for roll stock film for my filling line.">Roll stock</button>
           <button class="chip" type="button" data-open="I’m not sure which packaging format I need. Can you help me choose?">Help me choose</button>
         </div>
-        <button class="callme-link" type="button" data-callme><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 11.2v2a1.3 1.3 0 0 1-1.5 1.3A12.9 12.9 0 0 1 1.5 3.5 1.3 1.3 0 0 1 2.8 2h2a1.3 1.3 0 0 1 1.3 1.1c.1.7.3 1.3.5 1.9a1.3 1.3 0 0 1-.3 1.4l-.8.8a10.4 10.4 0 0 0 4.3 4.3l.8-.8a1.3 1.3 0 0 1 1.4-.3c.6.2 1.2.4 1.9.5a1.3 1.3 0 0 1 1.1 1.3z"/></svg>Prefer to talk? Get a call back</button>
-        <div class="assure">
-          <span><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8.5l3 3 7-7"/></svg>No account needed</span>
-          <span><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8.5l3 3 7-7"/></svg>Price breaks shown</span>
-          <span><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8.5l3 3 7-7"/></svg>A real rep finalizes it</span>
-        </div>
+        <div class="callme-wrap"><button class="callme-link" type="button" data-callme><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 11.2v2a1.3 1.3 0 0 1-1.5 1.3A12.9 12.9 0 0 1 1.5 3.5 1.3 1.3 0 0 1 2.8 2h2a1.3 1.3 0 0 1 1.3 1.1c.1.7.3 1.3.5 1.9a1.3 1.3 0 0 1-.3 1.4l-.8.8a10.4 10.4 0 0 0 4.3 4.3l.8-.8a1.3 1.3 0 0 1 1.4-.3c.6.2 1.2.4 1.9.5a1.3 1.3 0 0 1 1.1 1.3z"/></svg>Prefer to talk? Get a call back</button></div>
       </div>
 
     </div>
@@ -573,7 +573,7 @@ footer .logo{height:22px;opacity:.85}
     <svg class="logo logo-dark" viewBox="0 0 580 125" width="111" height="24" role="img" aria-label="Willowpack"><use href="#logo-white"/></svg>
     <span class="who"><span class="dot"></span>Quote assistant</span>
     <span class="spacer"></span>
-    <button class="btn btn-ghost" type="button" id="callBtn" aria-label="Get a call back"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 11.2v2a1.3 1.3 0 0 1-1.5 1.3A12.9 12.9 0 0 1 1.5 3.5 1.3 1.3 0 0 1 2.8 2h2a1.3 1.3 0 0 1 1.3 1.1c.1.7.3 1.3.5 1.9a1.3 1.3 0 0 1-.3 1.4l-.8.8a10.4 10.4 0 0 0 4.3 4.3l.8-.8a1.3 1.3 0 0 1 1.4-.3c.6.2 1.2.4 1.9.5a1.3 1.3 0 0 1 1.1 1.3z"/></svg><span class="ghost-label">Call me</span></button>
+    <button class="btn btn-ghost" type="button" id="callBtn" aria-label="Continue via call"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 11.2v2a1.3 1.3 0 0 1-1.5 1.3A12.9 12.9 0 0 1 1.5 3.5 1.3 1.3 0 0 1 2.8 2h2a1.3 1.3 0 0 1 1.3 1.1c.1.7.3 1.3.5 1.9a1.3 1.3 0 0 1-.3 1.4l-.8.8a10.4 10.4 0 0 0 4.3 4.3l.8-.8a1.3 1.3 0 0 1 1.4-.3c.6.2 1.2.4 1.9.5a1.3 1.3 0 0 1 1.1 1.3z"/></svg><span class="ghost-label">Continue via call</span></button>
     <button class="btn btn-ghost" type="button" id="historyBtn" aria-label="Past quotes"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="6"/><path d="M8 5v3l2 1.5"/></svg><span class="ghost-label">Past quotes</span></button>
     <button class="btn btn-ghost" type="button" id="newQuote"><span class="ghost-label">New quote</span><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M8 3v10M3 8h10"/></svg></button>
     <button class="icon-btn" type="button" id="closeChat" aria-label="Back to page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
@@ -665,7 +665,8 @@ footer .logo{height:22px;opacity:.85}
   try { metadata.timezone = Intl.DateTimeFormat().resolvedOptions().timeZone || ''; } catch (e) {}
 
   var chat = $('#chat'), inner = $('#threadInner'), thread = $('#thread'), input = $('#chatInput'), send = $('#chatSend');
-  var busy = false, started = false, stage = 0, lastFocus = null;
+  var busy = false, started = false, stage = 0, lastFocus = null, engaged = false, bookedNow = false;
+  function updateCallBtn() { $('#callBtn').classList.toggle('show', engaged && !bookedNow); }
 
   function setStage(n) {
     if (n < stage) return; stage = n;
@@ -802,7 +803,7 @@ footer .logo{height:22px;opacity:.85}
     if (!chat.classList.contains('open')) openChat();
     started = true; busy = true; send.disabled = true;
     remember(sessionId, text);
-    addUser(text);
+    addUser(text); engaged = true; updateCallBtn();
     var t = row('bot'); t.innerHTML = '<img class="avatar" src="' + MARK + '" alt=""><div class="bubble"><span class="typing" aria-label="Assistant is typing"><i></i><i></i><i></i></span></div>'; scrollEnd();
     fetch(WEBHOOK_URL, {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -830,11 +831,13 @@ footer .logo{height:22px;opacity:.85}
   function resetThread() {
     inner.innerHTML = ''; stage = 0; setStage(0); $('#quotePill').classList.remove('show');
     var bb = $('#bookBtn'); bb.classList.remove('booked'); bb.disabled = false; bb.textContent = 'Book a call';
+    engaged = false; bookedNow = false; updateCallBtn();
   }
   function showMeeting(mt) {
     if (!mt || !mt.time) return;
     var when = mt.time; try { when = new Date(mt.time).toLocaleString('en-CA', { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }); } catch (e) {}
     var bb = $('#bookBtn'); bb.classList.add('booked'); bb.disabled = true; bb.textContent = '✓ Call booked';
+    bookedNow = true; updateCallBtn();
     bb.title = when + (mt.rep ? ' with ' + mt.rep : '');
     if (!$('#quotePill').classList.contains('show')) { $('#qId').textContent = 'Your call'; $('#qVal').textContent = when; }
     else $('#qId').textContent = $('#qId').textContent.replace(/ · Call:.*$/, '') + ' · Call: ' + when + (mt.rep ? ' with ' + mt.rep.split(' ')[0] : '');
@@ -862,6 +865,7 @@ footer .logo{height:22px;opacity:.85}
       var turns = d.turns || [];
       if (!turns.length) { greet(); return; }
       turns.forEach(function (tu) { if (tu.user) addUser(tu.user); if (tu.bot) addBot(tu.bot); });
+      engaged = turns.some(function (tu) { return tu.user; }); updateCallBtn();
       if (d.quote) showQuote(d.quote);
       var me = (d.sessions || [])[0]; if (me && me.meeting_time) showMeeting({ time: me.meeting_time, rep: me.meeting_rep });
     }).catch(function () { t.remove(); addBot('I couldn’t load that earlier chat right now. You can keep going here, or start a new quote.'); })
@@ -894,13 +898,17 @@ footer .logo{height:22px;opacity:.85}
   function closeHistory() { chat.classList.remove('show-history'); input.focus(); }
 
   /* ---------- Request a call ---------- */
-  var cmBack = $('#cmBack'), cmPhone = $('#cmPhone'), cmMsg = $('#cmMsg'), cmSubmit = $('#cmSubmit'), cmLast = null;
-  function openCall() {
+  var cmBack = $('#cmBack'), cmPhone = $('#cmPhone'), cmMsg = $('#cmMsg'), cmSubmit = $('#cmSubmit'), cmLast = null, callMode = 'home';
+  function openCall(mode) {
+    callMode = mode === 'chat' ? 'chat' : 'home';
     cmLast = document.activeElement;
     cmPhone.value = ss('wp_phone') || cmPhone.value || '';
     cmMsg.textContent = ''; cmMsg.className = 'msg';
     var pr = getProfile && getProfile();
-    $('#cmSub').textContent = (pr && pr.first_name ? 'Hi ' + pr.first_name + '! ' : '') + 'Our AI packaging assistant will call you in about a minute. It can price options, pick up a saved quote and book time with a Willowpack rep.';
+    $('#cmTitle').textContent = callMode === 'chat' ? 'Continue this quote by phone' : 'Get a call back';
+    $('#cmSub').textContent = (pr && pr.first_name ? 'Hi ' + pr.first_name + '! ' : '') + (callMode === 'chat'
+      ? 'Our AI packaging assistant will call you in about a minute and pick up right where this chat left off, so you can finish the quote or book time with a rep.'
+      : 'Our AI packaging assistant will call you in about a minute to start a new quote. It also knows your earlier quotes if you want to go over one.');
     cmBack.classList.add('open'); setTimeout(function () { cmPhone.focus(); }, 30);
   }
   function closeCall() { cmBack.classList.remove('open'); if (cmLast && cmLast.focus) cmLast.focus(); }
@@ -912,8 +920,11 @@ footer .logo{height:22px;opacity:.85}
     if (digits.length < 10) { cmMsg.className = 'msg err'; cmMsg.textContent = 'Please enter a 10-digit phone number.'; return; }
     if (!$('#cmConsent').checked) { cmMsg.className = 'msg err'; cmMsg.textContent = 'Please tick the box so we can call you.'; return; }
     cmSubmit.disabled = true; cmMsg.className = 'msg'; cmMsg.textContent = 'Connecting…';
-    remember(sessionId, 'Phone call request');
-    post(CALL_URL, { sessionId: sessionId, phone: cmPhone.value, consent: true, timezone: metadata.timezone || '', carry: metadata.carry || null })
+    var ids = getList().map(function (x) { return x.id; });
+    var callSid = sessionId;
+    if (callMode === 'home') { callSid = uuid(); remember(callSid, 'Phone call'); }
+    var pr2 = getProfile && getProfile();
+    post(CALL_URL, { source: callMode, sessionId: callSid, sessionIds: ids, phone: cmPhone.value, consent: true, timezone: metadata.timezone || '', carry: metadata.carry || (pr2 && pr2.first_name ? pr2 : null) })
       .then(function (d) {
         cmMsg.className = 'msg ' + (d.ok ? 'ok' : 'err'); cmMsg.textContent = d.message || (d.ok ? 'Calling you now.' : 'Something went wrong.');
         if (d.ok) { ss('wp_phone', cmPhone.value); setTimeout(closeCall, 4000); setTimeout(function () { cmSubmit.disabled = false; }, 180000); }
@@ -921,8 +932,8 @@ footer .logo{height:22px;opacity:.85}
       })
       .catch(function () { cmMsg.className = 'msg err'; cmMsg.textContent = 'We could not reach our phone system. Please try again in a moment.'; cmSubmit.disabled = false; });
   });
-  $('#callBtn').addEventListener('click', openCall);
-  document.querySelectorAll('[data-callme]').forEach(function (b) { b.addEventListener('click', openCall); });
+  $('#callBtn').addEventListener('click', function () { openCall('chat'); });
+  document.querySelectorAll('[data-callme]').forEach(function (b) { b.addEventListener('click', function () { openCall('home'); }); });
 
   /* ---------- Inputs ---------- */
   function wire(form, ta, btn, onSend) {
