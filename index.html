@@ -75,8 +75,16 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
 .nav-past{display:none;align-items:center;gap:6px;padding:9px 14px;font-size:14px}
 .nav-past.show{display:inline-flex}
 .nav-past svg{width:16px;height:16px}
-@media (max-width:720px){.nav-past .lbl{display:none}.nav-past{padding:9px 11px}}
-.hero h1 .wave{display:inline-block;transform-origin:70% 70%;animation:wave 1.6s ease-in-out .4s 2}
+@media (max-width:720px){.nav-past .lbl{display:none}.nav-past{padding:9px 11px}.nav-right{gap:8px}}
+.nav .btn{white-space:nowrap}
+@media (max-width:420px){.nav-right{gap:6px}.nav .icon-btn{width:36px;height:36px}.nav-past{padding:8px 10px}.nav .btn-primary{padding:8px 12px;font-size:13.5px}.nav .logo{width:96px;height:auto}}
+.hero h1 .wave{display:inline-block;font-size:.82em;margin-left:.12em;vertical-align:.02em;transform-origin:70% 70%;animation:wave 1.6s ease-in-out .4s 2}
+.hero.returning h1{font-size:clamp(36px,5.2vw,64px);line-height:1.08;margin:0 0 14px}
+.hero.returning h1 .hname{white-space:nowrap}
+.hero.returning .lede{font-size:clamp(18px,1.9vw,21px);max-width:44ch;margin:0 auto 32px}
+.hero.returning .lede strong{color:var(--text);font-weight:600}
+.hero .eyebrow-back{display:inline-flex;align-items:center;gap:8px;margin:0 0 18px;padding:6px 14px 6px 10px;border-radius:999px;border:1px solid var(--line);background:color-mix(in srgb,var(--surface) 70%,transparent);font-size:13.5px;font-weight:500;color:var(--muted)}
+.hero .eyebrow-back i{width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 0 4px color-mix(in srgb,var(--green) 20%,transparent)}
 @keyframes wave{0%,60%,100%{transform:rotate(0)}10%,30%{transform:rotate(14deg)}20%{transform:rotate(-8deg)}40%{transform:rotate(-4deg)}50%{transform:rotate(10deg)}}
 @media (prefers-reduced-motion:reduce){.hero h1 .wave{animation:none}}
 .icon-btn{width:40px;height:40px;border-radius:50%;border:1px solid var(--line);background:var(--surface);display:grid;place-items:center;cursor:pointer;color:var(--muted);transition:color .15s,border-color .15s}
@@ -894,9 +902,14 @@ footer .logo{height:22px;opacity:.85}
     if (!pr || !pr.first_name) return;
     var name = String(pr.first_name).trim().split(/\s+/)[0];
     name = name.charAt(0).toUpperCase() + name.slice(1);
-    $('#heroTitle').innerHTML = 'Welcome back, ' + esc(name) + ' <span class="wave" aria-hidden="true">👋</span>';
-    $('#heroLede').textContent = pr.company ? 'What packaging can we create for ' + pr.company + ' today?' : 'What packaging can we create for you today?';
-    $('#heroInput').placeholder = 'Tell us what you’re packaging next';
+    var co = String(pr.company || '').trim().replace(/\b([a-z])/g, function (m) { return m.toUpperCase(); });
+    var title = $('#heroTitle');
+    var heroBox = document.querySelector('.hero'); if (heroBox) heroBox.classList.add('returning');
+    if (co && !document.querySelector('.eyebrow-back')) { var eb = document.createElement('div'); eb.className = 'eyebrow-back'; eb.innerHTML = '<i></i>' + esc(co); title.parentNode.insertBefore(eb, title); }
+    title.innerHTML = 'Welcome back, <span class="hname">' + esc(name) + '<span class="wave" aria-hidden="true">👋</span></span>';
+    var tail = ss('wp_has_quote') === '1' ? ' Start something new, or pick up a saved quote.' : '';
+    $('#heroLede').innerHTML = 'What can we package for ' + (co ? '<strong>' + esc(co) + '</strong>' : 'you') + ' today?' + tail;
+    $('#heroInput').placeholder = matchMedia('(max-width: 720px)').matches ? 'What are you packaging next?' : 'e.g. 10,000 roll labels for our new SKU';
   }
   function refreshReturning() {
     var list = getList();
