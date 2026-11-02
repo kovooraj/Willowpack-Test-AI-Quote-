@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Get a packaging quote | Willowpack</title>
+<meta name="description" content="Tell us what you package and get an instant estimate for pouches, roll stock, roll labels and product boxes from Willowpack.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Figtree:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/@n8n/chat@1.43.1/dist/style.css" rel="stylesheet">
+<style>
+:root{
+  --spruce:#1C3B31; --spruce-2:#25503F; --kraft:#C49A6C; --kraft-deep:#9C7446;
+  --film:#E7EEF0; --paper:#FFFFFF; --ink:#14201B; --muted:#56665F; --line:#CBD6D9;
+  --bg:var(--film); --surface:var(--paper); --text:var(--ink);
+  color-scheme: light;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#101A16; --surface:#16231E; --text:#E6EEEA; --muted:#9DB0A8; --line:#2A3B34;
+    --spruce:#5FA588; --spruce-2:#7BBDA1; --kraft:#D2AA7C; --kraft-deep:#E2BE94;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#101A16; --surface:#16231E; --text:#E6EEEA; --muted:#9DB0A8; --line:#2A3B34;
+  --spruce:#5FA588; --spruce-2:#7BBDA1; --kraft:#D2AA7C; --kraft-deep:#E2BE94;
+  color-scheme: dark;
+}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--text);font:400 17px/1.55 Figtree,"Segoe UI",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+a{color:var(--spruce)}
+:focus-visible{outline:3px solid var(--kraft);outline-offset:2px}
+
+.top{max-width:1180px;margin:0 auto;padding:22px 24px;display:flex;align-items:center;justify-content:space-between}
+.brand{font:800 22px/1 "Bricolage Grotesque",Figtree,sans-serif;letter-spacing:-.02em;color:var(--text);text-decoration:none}
+.brand span{display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--kraft);margin-left:4px;vertical-align:2px}
+.top-link{font-weight:600;font-size:15px;text-decoration:none}
+
+.wrap{max-width:1180px;margin:0 auto;padding:12px 24px 72px;display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:56px;align-items:start}
+
+.intro h1{font:800 clamp(40px,5.2vw,64px)/.98 "Bricolage Grotesque",Figtree,sans-serif;letter-spacing:-.035em;margin:24px 0 20px;max-width:12ch}
+.intro .lede{font-size:19px;color:var(--muted);max-width:42ch;margin:0 0 36px}
+
+.formats{margin:0 0 40px;padding:0;border-top:1px solid var(--line)}
+.formats div{display:grid;grid-template-columns:150px 1fr;gap:16px;padding:12px 0;border-bottom:1px solid var(--line)}
+.formats dt{font-weight:600}
+.formats dd{margin:0;color:var(--muted);font-size:15.5px}
+
+.steps{list-style:none;margin:0;padding:0;counter-reset:s}
+.steps li{counter-increment:s;display:grid;grid-template-columns:34px 1fr;gap:12px;margin-bottom:14px;font-size:16px}
+.steps li::before{content:counter(s);width:28px;height:28px;border-radius:50%;border:1.5px solid var(--spruce);color:var(--spruce);font:700 14px/25px Figtree,sans-serif;text-align:center}
+.fine{margin-top:28px;font-size:13.5px;color:var(--muted);max-width:46ch}
+
+/* The chat, drawn as a stand-up pouch: kraft seal band, tear notches, zipper track */
+.pouch{position:relative;background:var(--surface);border-radius:14px 14px 34px 34px;box-shadow:0 1px 0 var(--line),0 24px 60px -28px rgba(20,32,27,.45);overflow:hidden;border:1px solid var(--line)}
+.seal{position:relative;height:58px;background:
+   repeating-linear-gradient(90deg,rgba(0,0,0,.05) 0 2px,transparent 2px 6px),var(--kraft);
+   display:flex;align-items:center;justify-content:space-between;padding:0 30px;color:#2B1F12}
+.seal::before,.seal::after{content:"";position:absolute;top:18px;width:16px;height:22px;background:var(--bg)}
+.seal::before{left:-1px;clip-path:polygon(0 0,100% 50%,0 100%)}
+.seal::after{right:-1px;clip-path:polygon(100% 0,0 50%,100% 100%)}
+.seal strong{font:700 17px/1.1 "Bricolage Grotesque",Figtree,sans-serif;letter-spacing:-.01em}
+.seal small{font-size:13px;font-weight:500;opacity:.8}
+.zip{height:10px;background:var(--surface);border-bottom:1px solid var(--line);position:relative}
+.zip::after{content:"";position:absolute;left:18px;right:18px;top:4px;border-top:2px dashed var(--line)}
+#wp-chat{height:min(640px,72vh);min-height:480px}
+
+/* n8n chat theme */
+#wp-chat{
+  --chat--font-family:Figtree,"Segoe UI",system-ui,sans-serif;
+  --chat--color--primary:var(--spruce);
+  --chat--color--primary-shade-50:var(--spruce-2);
+  --chat--color--primary--shade-100:var(--spruce-2);
+  --chat--color--secondary:var(--spruce);
+  --chat--color-secondary-shade-50:var(--spruce-2);
+  --chat--color-white:var(--surface);
+  --chat--color-light:var(--surface);
+  --chat--color-light-shade-50:var(--bg);
+  --chat--color-light-shade-100:var(--line);
+  --chat--color-medium:var(--line);
+  --chat--color-dark:var(--text);
+  --chat--color-typing:var(--muted);
+  --chat--border-radius:12px;
+  --chat--spacing:14px;
+  --chat--body--background:var(--surface);
+  --chat--footer--background:var(--surface);
+  --chat--footer--color:var(--text);
+  --chat--header--background:var(--surface);
+  --chat--header--color:var(--text);
+  --chat--header--padding:0;
+  --chat--header-height:0;
+  --chat--message--font-size:15.5px;
+  --chat--message-line-height:1.5;
+  --chat--message--bot--background:var(--bg);
+  --chat--message--bot--color:var(--text);
+  --chat--message--bot--border:none;
+  --chat--message--user--background:var(--spruce);
+  --chat--message--user--color:#fff;
+  --chat--message--user--border:none;
+  --chat--message--border-radius:14px;
+  --chat--input--background:var(--surface);
+  --chat--input--text-color:var(--text);
+  --chat--input--border:1px solid var(--line);
+  --chat--input--border-active:1px solid var(--spruce);
+  --chat--input--font-size:16px;
+  --chat--input--send--button--color:var(--spruce);
+  --chat--input--send--button--color-hover:var(--kraft-deep);
+  --chat--input--send--button--background:transparent;
+  --chat--input--send--button--background-hover:transparent;
+}
+#wp-chat .chat-header{display:none}
+#wp-chat .chat-layout{border-radius:0;background:var(--surface)}
+#wp-chat .chat-footer{border-top:1px solid var(--line)}
+#wp-chat .chat-message-markdown a{color:inherit}
+
+.fallback{display:none;padding:32px;color:var(--muted)}
+.fallback.show{display:block}
+
+@media (max-width:900px){
+  .wrap{grid-template-columns:1fr;gap:32px;padding-bottom:48px}
+  .intro h1{margin-top:8px;max-width:none}
+  .chat-col{order:-1}
+  .intro{order:0}
+  .intro .lede{margin-bottom:28px}
+  #wp-chat{height:70vh}
+  .formats div{grid-template-columns:120px 1fr}
+  .seal small{display:none}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="https://willowpack.com" aria-label="Willowpack home">Willowpack<span></span></a>
+</header>
+
+<main class="wrap">
+  <section class="intro" aria-labelledby="h">
+    <h1 id="h">Price your packaging in a few minutes.</h1>
+    <p class="lede">Tell our quote assistant what you're packaging. It helps you pick the right format, works through the specs with you and gives you a price on the spot.</p>
+
+    <dl class="formats" aria-label="Packaging we make">
+      <div><dt>Pouches</dt><dd>Stand-up and flat, with zippers, tear notches and hang holes</dd></div>
+      <div><dt>Roll stock</dt><dd>Printed film on rolls for VFFS and HFFS filling lines</dd></div>
+      <div><dt>Product boxes</dt><dd>Printed folding cartons for retail shelves</dd></div>
+      <div><dt>Roll labels</dt><dd>Pressure-sensitive labels on paper, BOPP or poly</dd></div>
+      <div><dt>Cut &amp; stack labels</dt><dd>Quoted by our packaging team</dd></div>
+    </dl>
+
+    <ol class="steps" aria-label="How it works">
+      <li>Tell us what you package and how many you need.</li>
+      <li>Choose size, material, finish and features.</li>
+      <li>See your price and quantity breaks.</li>
+      <li>Book a call with a Willowpack rep to finalize.</li>
+    </ol>
+
+    <p class="fine">Prices are estimates based on the specs you choose. Shipping and taxes are extra, and your rep confirms the final quote after artwork review.</p>
+  </section>
+
+  <section class="chat-col" aria-label="Willowpack quote assistant">
+    <div class="pouch">
+      <div class="seal"><strong>Willowpack quote assistant</strong><small>Usually replies in seconds</small></div>
+      <div class="zip" aria-hidden="true"></div>
+      <div id="wp-chat"></div>
+      <p class="fallback" id="wp-fallback">The quote assistant couldn't load. Refresh the page or try again in a few minutes.</p>
+    </div>
+  </section>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@n8n/chat@1.43.1/dist/chat.bundle.umd.js"></script>
+<script>
+(function () {
+  var WEBHOOK_URL = 'https://n8n.sinaprinting.com/webhook/6bdb5839-ee1d-4399-9614-3bdfa0f6d624/chat';
+  var q = new URLSearchParams(window.location.search);
+  var meta = {
+    page_url: window.location.href.split('#')[0],
+    utm_source: q.get('utm_source') || '',
+    utm_medium: q.get('utm_medium') || '',
+    utm_campaign: q.get('utm_campaign') || '',
+    referrer: document.referrer || ''
+  };
+  try {
+    if (!window.N8nChat || !window.N8nChat.createChat) throw new Error('chat library missing');
+    window.N8nChat.createChat({
+      webhookUrl: WEBHOOK_URL,
+      target: '#wp-chat',
+      mode: 'fullscreen',
+      showWelcomeScreen: false,
+      loadPreviousSession: false,
+      enableStreaming: false,
+      metadata: meta,
+      defaultLanguage: 'en',
+      initialMessages: [
+        'Hi, I’m the Willowpack quote assistant.',
+        'What are you packaging, and do you already know the format you want (pouch, roll stock, label or box)?'
+      ],
+      i18n: { en: { title: '', subtitle: '', footer: '', getStarted: 'Start', inputPlaceholder: 'Type your message…', closeButtonTooltip: 'Close' } }
+    });
+  } catch (e) {
+    document.getElementById('wp-chat').style.display = 'none';
+    document.getElementById('wp-fallback').classList.add('show');
+  }
+})();
+</script>
+</body>
+</html>
