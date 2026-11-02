@@ -72,6 +72,13 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
 .nav-links a{text-decoration:none;transition:color .15s}
 .nav-links a:hover{color:var(--text)}
 .nav-right{display:flex;align-items:center;gap:10px}
+.nav-past{display:none;align-items:center;gap:6px;padding:9px 14px;font-size:14px}
+.nav-past.show{display:inline-flex}
+.nav-past svg{width:16px;height:16px}
+@media (max-width:720px){.nav-past .lbl{display:none}.nav-past{padding:9px 11px}}
+.hero h1 .wave{display:inline-block;transform-origin:70% 70%;animation:wave 1.6s ease-in-out .4s 2}
+@keyframes wave{0%,60%,100%{transform:rotate(0)}10%,30%{transform:rotate(14deg)}20%{transform:rotate(-8deg)}40%{transform:rotate(-4deg)}50%{transform:rotate(10deg)}}
+@media (prefers-reduced-motion:reduce){.hero h1 .wave{animation:none}}
 .icon-btn{width:40px;height:40px;border-radius:50%;border:1px solid var(--line);background:var(--surface);display:grid;place-items:center;cursor:pointer;color:var(--muted);transition:color .15s,border-color .15s}
 .icon-btn:hover{color:var(--text);border-color:var(--line-2)}
 .icon-btn svg{width:18px;height:18px}
@@ -393,6 +400,7 @@ footer .logo{height:22px;opacity:.85}
         <svg class="moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
         <svg class="sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
       </button>
+      <button class="btn btn-ghost nav-past" id="navPast" type="button" aria-label="Previous quotes"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="6"/><path d="M8 5v3l2 1.5"/></svg><span class="lbl">Previous quotes</span></button>
       <button class="btn btn-primary" type="button" data-hero>Get a quote</button>
     </div>
   </div>
@@ -402,8 +410,8 @@ footer .logo{height:22px;opacity:.85}
   <section class="hero">
     <div class="wrap hero-grid">
       <div class="hero-col">
-        <h1>Custom packaging,<br>priced in minutes.</h1>
-        <p class="lede">Pouches, roll stock, labels and boxes, printed digitally in-house. Tell our quote assistant what you’re packaging and see your price before you leave the page.</p>
+        <h1 id="heroTitle">Custom packaging,<br>priced in minutes.</h1>
+        <p class="lede" id="heroLede">Pouches, roll stock, labels and boxes, printed digitally in-house. Tell our quote assistant what you’re packaging and see your price before you leave the page.</p>
 
         <form class="composer" id="heroForm" autocomplete="off">
           <label class="sr" for="heroInput">Describe what you’re packaging</label>
@@ -733,6 +741,7 @@ footer .logo{height:22px;opacity:.85}
   function money(n, cur) { return cur + ' $' + Number(n).toLocaleString('en-CA', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
   function showQuote(qt) {
     if (!qt || !qt.id || qt.total == null) return;
+    ss('wp_has_quote', '1'); $('#navPast').classList.add('show');
     var cur = qt.currency || 'CAD', tot = qt.discounted_total != null ? qt.discounted_total : qt.total;
     $('#qId').textContent = 'Quote ' + qt.id + (qt.quantity ? ' · ' + Number(qt.quantity).toLocaleString('en-CA') + ' units' : '') + (qt.summary ? ' · ' + qt.summary : '');
     $('#qVal').textContent = money(tot, cur) + (qt.discounted_total != null ? ' (5% chat discount)' : '');
@@ -878,6 +887,33 @@ footer .logo{height:22px;opacity:.85}
   $('#historyClose').addEventListener('click', closeHistory);
   addEventListener('keydown', function (e) { if (e.key === 'Escape' && chat.classList.contains('open')) { if (chat.classList.contains('show-history')) closeHistory(); else closeChat(); } });
   if (resumeId) openChat(); else if (known(sessionId)) $('#resume').classList.add('show');
+
+  /* ---------- Returning visitor: previous quotes + personal welcome ---------- */
+  function getProfile() { try { return JSON.parse(ss('wp_profile') || 'null'); } catch (e) { return null; } }
+  function welcome(pr) {
+    if (!pr || !pr.first_name) return;
+    var name = String(pr.first_name).trim().split(/\s+/)[0];
+    name = name.charAt(0).toUpperCase() + name.slice(1);
+    $('#heroTitle').innerHTML = 'Welcome back, ' + esc(name) + ' <span class="wave" aria-hidden="true">👋</span>';
+    $('#heroLede').textContent = pr.company ? 'What packaging can we create for ' + pr.company + ' today?' : 'What packaging can we create for you today?';
+    $('#heroInput').placeholder = 'Tell us what you’re packaging next';
+  }
+  function refreshReturning() {
+    var list = getList();
+    $('#navPast').classList.toggle('show', list.length > 0 && ss('wp_has_quote') === '1');
+    var cached = getProfile();
+    if (cached) welcome(cached);
+    if (!list.length) return;
+    post(HISTORY_URL, { sessionIds: list.map(function (x) { return x.id; }) }).then(function (d) {
+      var ses = d.sessions || [];
+      var hasQuote = ses.some(function (x) { return x.quote && x.quote.id; });
+      ss('wp_has_quote', hasQuote ? '1' : '0'); $('#navPast').classList.toggle('show', hasQuote);
+      var best = ses.filter(function (x) { return x.profile && x.profile.first_name; })[0];
+      if (best) { var pr = { first_name: best.profile.first_name, company: best.profile.company || '' }; ss('wp_profile', JSON.stringify(pr)); welcome(pr); }
+    }).catch(function () {});
+  }
+  $('#navPast').addEventListener('click', function () { if (!chat.classList.contains('open')) openChat(); openHistory(); });
+  refreshReturning();
 })();
 </script>
 </body>
