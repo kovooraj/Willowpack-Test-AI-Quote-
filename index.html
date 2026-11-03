@@ -442,7 +442,7 @@ footer .logo{height:22px;opacity:.85}
 
         <form class="composer" id="heroForm" autocomplete="off">
           <label class="sr" for="heroInput">Describe what you’re packaging</label>
-          <textarea id="heroInput" rows="1" placeholder="e.g. 5,000 stand-up pouches for whole-bean coffee"></textarea>
+          <textarea id="heroInput" rows="1" placeholder="e.g. 5,000 stand-up pouches for dog treats"></textarea>
           <div class="composer-row">
             <span class="hint" id="heroHint">No account needed · Price breaks in seconds · A real rep finalizes it</span>
             <button class="send" type="submit" id="heroSend" disabled>Get my quote
@@ -966,7 +966,7 @@ footer .logo{height:22px;opacity:.85}
   $('#historyBtn').addEventListener('click', function () { chat.classList.contains('show-history') ? closeHistory() : openHistory(); });
   $('#historyClose').addEventListener('click', closeHistory);
   addEventListener('keydown', function (e) { if (e.key === 'Escape' && cmBack.classList.contains('open')) { closeCall(); return; } if (e.key === 'Escape' && chat.classList.contains('open')) { if (chat.classList.contains('show-history')) closeHistory(); else closeChat(); } });
-  if (resumeId) openChat(); else if (known(sessionId)) $('#resume').classList.add('show');
+  if (resumeId) openChat(); /* Continue/Previous buttons are shown only after the server confirms real history (refreshReturning) */
 
   /* ---------- Returning visitor: previous quotes + personal welcome ---------- */
   function getProfile() { try { return JSON.parse(ss('wp_profile') || 'null'); } catch (e) { return null; } }
@@ -985,14 +985,20 @@ footer .logo{height:22px;opacity:.85}
   }
   function refreshReturning() {
     var list = getList();
-    $('#navPast').classList.toggle('show', list.length > 0 && ss('wp_has_quote') === '1');
+    $('#navPast').classList.remove('show'); $('#resume').classList.remove('show');
+    if (!list.length) { ss('wp_has_quote', '0'); try { localStorage.removeItem('wp_profile'); } catch (e) {} return; }
     var cached = getProfile();
     if (cached) welcome(cached);
-    if (!list.length) return;
     post(HISTORY_URL, { sessionIds: list.map(function (x) { return x.id; }) }).then(function (d) {
-      var ses = d.sessions || [];
+      var ses = (d.sessions || []).filter(function (x) { return x && x.id; });
+      var real = {}; ses.forEach(function (x) { real[x.id] = x; });
+      /* drop chats the server has no record of (opened but never used) */
+      var kept = getList().filter(function (x) { return real[x.id]; });
+      ss('wp_sessions', JSON.stringify(kept));
       var hasQuote = ses.some(function (x) { return x.quote && x.quote.id; });
-      ss('wp_has_quote', hasQuote ? '1' : '0'); $('#navPast').classList.toggle('show', hasQuote);
+      ss('wp_has_quote', hasQuote ? '1' : '0');
+      $('#navPast').classList.toggle('show', kept.length > 0);
+      if (real[sessionId] && !chat.classList.contains('open')) $('#resume').classList.add('show');
       var best = ses.filter(function (x) { return x.profile && x.profile.first_name; })[0];
       if (best) { var pr = { first_name: best.profile.first_name, company: best.profile.company || '' }; ss('wp_profile', JSON.stringify(pr)); welcome(pr); }
     }).catch(function () {});
