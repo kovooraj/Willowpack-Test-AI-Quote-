@@ -12,7 +12,7 @@
   'use strict';
   if (w.WillowpackChat && w.WillowpackChat.version) { w.WillowpackChat.scan(); return; }
 
-  var VERSION = '1.0.0';
+  var VERSION = '1.0.1';
   var script = d.currentScript || d.querySelector('script[src*="embed.js"],script[src*="/embed/v1.js"]');
   var BASE = 'https://willowpacktestaiquote.vercel.app';
   try { if (script && script.src) BASE = new URL(script.src, location.href).origin; } catch (e) {}
@@ -227,7 +227,7 @@
     '.c{background:var(--s);border:1px solid var(--ln);border-radius:var(--r);padding:14px 14px 12px 18px;box-shadow:var(--sh);transition:border-color .15s,box-shadow .2s}' +
     '.c:focus-within{border-color:var(--g);box-shadow:var(--sh),0 0 0 4px color-mix(in srgb,var(--g) 18%,transparent)}' +
     'textarea{display:block;width:100%;border:0;background:transparent;resize:none;outline:none;min-height:26px;max-height:180px;line-height:1.5;padding:2px 0 12px;font-size:16.5px}' +
-    'textarea::placeholder{color:var(--fa)}textarea:focus,textarea:focus-visible{outline:none}' +
+    'textarea::placeholder{color:var(--fa)}textarea,textarea:focus,textarea:focus-visible{outline:none!important;box-shadow:none!important}' +
     '.row{display:flex;align-items:center;gap:10px}.h{font-size:13px;color:var(--fa)}' +
     '.go{margin-left:auto;height:40px;border-radius:999px;border:0;background:var(--g);color:#fff;display:inline-flex;align-items:center;gap:8px;padding:0 16px;font-weight:600;cursor:pointer;white-space:nowrap;transition:background-color .15s,opacity .15s}' +
     '.go:hover{background:var(--g6)}.go:disabled{opacity:.45;cursor:default}.go svg{width:16px;height:16px}' +
