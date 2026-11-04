@@ -235,6 +235,19 @@ const overlayShown = (page) => page.evaluate(() => { const h = document.querySel
     const xsite = await fetch(BASE + '/api/auth/login', { method: 'POST', headers: { 'Content-Type': 'application/json', Origin: 'https://evil.example' }, body: '{"credential":"x"}' }); ok(xsite.status === 403, 'cross-origin login POST rejected');
     await actx.close();
 
+    /* ---------- email "Book my call" links: ?resume=<id>&ask=book ---------- */
+    for (const [label, url, inFrame] of [['home page', '/?resume=abc12345-book-test&ask=book', false], ['embedded page', '/embed-test.html?resume=abc12345-book-test&ask=book', true]]) {
+      const bctx = await browser.newContext(); const blog = []; await stubN8n(bctx, blog);
+      const bp = await bctx.newPage(); await bp.goto(BASE + url);
+      const scope = inFrame ? chatFrame(bp) : bp;
+      await scope.locator('.msg.user .bubble').first().waitFor({ timeout: 15000 });
+      await bp.waitForTimeout(600);
+      const sentBook = blog.find((l) => l.url.includes('quote-chat') && /book a call/i.test(l.body.chatInput || ''));
+      ok(!!sentBook && sentBook.body.sessionId === 'abc12345-book-test', label + ': ask=book loads the saved chat then sends the book-a-call message');
+      ok(!/ask=book/.test(bp.url()), label + ': ask param removed from the URL', bp.url());
+      await bctx.close();
+    }
+
     /* ---------- home page untouched ---------- */
     const hctx = await browser.newContext(); const hlog = []; await stubN8n(hctx, hlog);
     const hp = await hctx.newPage();

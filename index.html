@@ -658,6 +658,8 @@ footer .logo{height:22px;opacity:.85}
   function known(id) { return getList().some(function (x) { return x.id === id; }); }
   var sessionId = ss('wp_session') || uuid();
   var resumeId = (new URLSearchParams(location.search)).get('resume') || '';
+  /* Email "Book my call" links add &ask=book: after the saved chat loads, send the book-a-call message */
+  var pendingAsk = (new URLSearchParams(location.search)).get('ask') === 'book' && /^[A-Za-z0-9-]{8,64}$/.test((new URLSearchParams(location.search)).get('resume') || '') ? 'I’d like to book a call with a Willowpack rep to finalize this quote.' : '';
   if (/^[A-Za-z0-9-]{8,64}$/.test(resumeId)) { sessionId = resumeId; remember(resumeId, 'Saved quote'); try { history.replaceState(null, '', location.pathname); } catch (e) {} } else resumeId = '';
   ss('wp_session', sessionId);
   var q = new URLSearchParams(location.search);
@@ -869,7 +871,7 @@ footer .logo{height:22px;opacity:.85}
       if (d.quote) showQuote(d.quote);
       var me = (d.sessions || [])[0]; if (me && me.meeting_time) showMeeting({ time: me.meeting_time, rep: me.meeting_rep });
     }).catch(function () { t.remove(); addBot('I couldn’t load that earlier chat right now. You can keep going here, or start a new quote.'); })
-      .then(function () { busy = false; send.disabled = !input.value.trim(); scrollEnd(); });
+      .then(function () { busy = false; send.disabled = !input.value.trim(); scrollEnd(); if (pendingAsk) { var a = pendingAsk; pendingAsk = ''; ask(a); } });
   }
   var STAGE = { quoted: 'Quoted', handed_to_sales: 'With a rep', meeting_booked: 'Call booked', scheduling: 'Booking a call', speccing: 'In progress', discovery: 'In progress', closed_no_interest: 'Closed' };
   function fmtDate(ts) { try { return new Date(ts).toLocaleDateString('en-CA', { month: 'short', day: 'numeric', year: 'numeric' }); } catch (e) { return ''; } }
