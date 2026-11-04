@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>Embed test page (fake Unbounce)</title>
+<!-- Deliberately hostile host CSS: the embed must look the same despite it. -->
+<style>
+  * { box-sizing: content-box; }
+  body { margin: 0; font: 18px/1.2 Georgia, serif; color: #222; background: #fdf6e3; }
+  div, button, textarea, p { all: revert; font-family: "Comic Sans MS", cursive !important; letter-spacing: 1px; }
+  button { background: red; color: yellow; border: 4px dashed blue; text-transform: uppercase; }
+  textarea { background: #ffd; border: 3px solid purple; }
+  .lp-hero { padding: 48px 20px; text-align: center; background: linear-gradient(#0b3d2e, #126a4d); color: #fff; }
+  .lp-hero h1 { font-size: 44px; margin: 0 0 10px; }
+  .lp-section { max-width: 900px; margin: 0 auto; padding: 40px 20px; }
+  .lp-dark { background: #0b1311; padding: 40px 20px; }
+  .tall { height: 1200px; background: repeating-linear-gradient(#fdf6e3 0 40px, #f3ead0 40px 80px); }
+  .lp-row { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+</style>
+</head>
+<body>
+<header class="lp-hero">
+  <h1>Spring pouch promo</h1>
+  <p>Marketers write this headline in Unbounce. The box below is the embed.</p>
+</header>
+
+<section class="lp-section">
+  <div id="box-light" data-willowpack-chat data-theme="light" data-accent="#1F9F71" data-campaign="spring-pouch-promo" data-formats="pouches,labels,boxes,rollstock,help"></div>
+</section>
+
+<section class="lp-dark">
+  <div id="box-dark" data-willowpack-chat data-theme="dark" data-accent="#E07A2E" data-campaign="spring-pouch-promo" data-formats="help,pouches" data-placeholder="What are you packaging?" data-button="Price it" data-hint="" data-formats-label=""></div>
+</section>
+
+<section class="lp-section">
+  <div class="lp-row">
+    <div id="qb-outline" data-willowpack-quotes data-label="Previous quotes" data-variant="outline" data-theme="light"></div>
+    <div id="qb-filled" data-willowpack-quotes data-label="My saved quotes" data-variant="filled" data-theme="light" data-accent="#1F9F71"></div>
+    <button type="button" id="api-open" onclick="WillowpackChat.open({ q: 'API test: 2,000 coffee bags' })">JS API open</button>
+  </div>
+</section>
+<div class="tall"></div>
+
+<script src="/embed.js" async></script>
+</body>
+</html>
