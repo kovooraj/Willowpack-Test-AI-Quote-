@@ -85,10 +85,13 @@ document.documentElement.setAttribute('data-theme',t)})();
             <input type="text" id="cbCampaign" placeholder="spring-pouch-promo" maxlength="80" spellcheck="false">
             <small id="cbCampaignHelp">Goes to Salesforce as <b>UTM Campaign</b>. Lowercase letters, numbers and hyphens. A <code>utm_campaign</code> in the page URL wins over this.</small>
           </div>
-          <div class="field"><span class="lbl">Format buttons</span>
-            <small>Toggle on/off and drag to reorder (or use the arrows).</small>
+          <details class="field more" id="cbFormatsBox" open>
+            <summary>Format buttons <span class="count" id="cbFormatsCount"></span></summary>
+            <small>Toggle on/off, rename, and drag to reorder (or use the arrows).</small>
             <ul class="fmt-list" id="cbFormats"></ul>
-          </div>
+            <button class="btn btn-ghost add-btn" type="button" id="cbAddCustom">+ Add your own button</button>
+            <small>Your own buttons send the message you write, as if the visitor had typed it.</small>
+          </details>
           <details class="field more">
             <summary>Text &amp; style</summary>
             <label class="lbl" for="cbPlaceholder">Input placeholder</label><input type="text" id="cbPlaceholder" placeholder="e.g. 10,000 roll labels for our new SKU">
@@ -176,7 +179,15 @@ document.documentElement.setAttribute('data-theme',t)})();
         <div><b>4</b><h3>Email links</h3><p>Quote emails link to your landing page with <code>?resume=</code>, which reopens that chat automatically.</p></div>
       </div>
       <div class="faq">
-        <details open><summary>What gets sent to Salesforce?</summary>
+        <details open><summary>What do Active, Abandoned and Bounced mean?</summary>
+          <ul>
+            <li><b>Active</b>: the visitor replied in the last 2 hours.</li>
+            <li><b>Accepted</b> / <b>Call booked</b>: they accepted a quote or booked a call. The Account, Contact and Opportunity are created in Salesforce.</li>
+            <li><b>Abandoned</b>: no reply for 2+ hours, but we have their name, company and email. A Salesforce <b>Lead</b> is created so a rep can follow up.</li>
+            <li><b>Bounced</b>: no reply for 2+ hours and no contact details. Nothing is sent to Salesforce.</li>
+          </ul>
+          <p>Conversations shows the Salesforce Account (with its AI tier), the Lead, and the AI chat Quotes as links once they exist. They are refreshed every 15 minutes.</p></details>
+        <details><summary>What gets sent to Salesforce?</summary>
           <p>Every chat records the <b>landing page URL</b> the visitor was on (not our chat URL) plus <b>UTM Source, Medium and Campaign</b>. UTMs come from the landing page’s own URL (e.g. from your ads). If the URL has no <code>utm_campaign</code>, the box’s <b>Campaign tag</b> is used. These are saved on the first message of a chat and pushed to Salesforce with the lead.</p></details>
         <details><summary>Why can’t a customer see quotes they started on willowpack.com?</summary>
           <p>Quote history is saved in the visitor’s browser, and browsers keep it separate <b>per browser and per website</b>. A chat started on willowpack.com won’t show on an Unbounce page (and vice versa), and it won’t follow the customer to their phone. Their quote email link always works: it reopens the chat on the page where it started.</p></details>
@@ -216,20 +227,20 @@ document.documentElement.setAttribute('data-theme',t)})();
       <div id="cvApp" hidden>
         <div class="tiles" id="cvTiles"></div>
         <form class="filters" id="cvFilters" autocomplete="off">
-          <input type="search" name="q" placeholder="Search name, company, email, quote, first message…" aria-label="Search">
+          <input class="search" type="search" name="q" placeholder="Search name, company, email, quote, first message…" aria-label="Search">
+          <select name="outcome" aria-label="Outcome"><option value="">All outcomes</option><option value="active">Active</option><option value="accepted">Accepted</option><option value="call_booked">Call booked</option><option value="abandoned">Abandoned</option><option value="bounced">Bounced</option></select>
           <select name="channel" aria-label="Channel"><option value="">All channels</option><option value="web">Website</option><option value="embed">Embedded page</option><option value="voice">Phone</option><option value="admin-demo">Admin demo</option></select>
+          <select name="tier" aria-label="Tier"><option value="">All tiers</option></select>
           <select name="campaign" aria-label="Campaign"><option value="">All campaigns</option></select>
           <select name="host" aria-label="Source site"><option value="">All sites</option></select>
           <select name="stage" aria-label="Stage"><option value="">All stages</option></select>
-          <label class="date">From <input type="date" name="from"></label>
-          <label class="date">To <input type="date" name="to"></label>
-          <button class="link" type="reset">Clear</button>
+          <div class="dates"><label class="date">From <input type="date" name="from"></label><label class="date">To <input type="date" name="to"></label><button class="link" type="reset">Clear</button></div>
         </form>
         <div class="split">
-          <div class="panel table-wrap"><table class="cv" id="cvTable"><thead><tr><th>Last activity</th><th>Customer</th><th>Source</th><th>Campaign</th><th>Stage</th><th class="num">Quote</th><th class="num">Turns</th></tr></thead><tbody></tbody></table>
+          <div class="panel table-wrap"><table class="cv" id="cvTable"><thead><tr><th>Last activity</th><th>Customer</th><th>Outcome</th><th>Tier</th><th>Source</th><th>Campaign</th><th class="num">Quote</th></tr></thead><tbody></tbody></table>
             <div class="more-row"><span id="cvCount"></span><button class="btn btn-ghost" type="button" id="cvMore" hidden>Load more</button></div>
           </div>
-          <aside class="panel detail" id="cvDetail" hidden aria-live="polite"></aside>
+          <div class="detail-scrim" id="cvScrim" hidden></div><aside class="panel detail" id="cvDetail" hidden aria-live="polite" role="dialog" aria-label="Conversation details"></aside>
         </div>
       </div>
     </section>

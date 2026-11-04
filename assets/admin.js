@@ -128,18 +128,25 @@
   FMT.forEach(function (f) { if (!cb.formats.some(function (x) { return x.k === f.k; })) cb.formats.push({ k: f.k, on: false, label: '' }); });
   var cbSnip = 'full';
 
-  function fmtDefault(k) { return FMT.filter(function (f) { return f.k === k; })[0].label; }
+  function fmtDefault(k) { var f = FMT.filter(function (x) { return x.k === k; })[0]; return f ? f.label : 'Your button'; }
+  function isCustom(f) { return /^custom\d+$/.test(f.k); }
   function renderFormatList() {
     var ul = $('#cbFormats'); ul.innerHTML = '';
     cb.formats.forEach(function (f, i) {
       var li = document.createElement('li'); li.draggable = true; li.dataset.i = i; if (!f.on) li.className = 'off';
-      li.innerHTML = '<span class="grip" aria-hidden="true" title="Drag to reorder">⋮⋮</span>' +
-        '<label class="switch" title="Show this button"><input type="checkbox" ' + (f.on ? 'checked' : '') + ' aria-label="Show ' + esc(fmtDefault(f.k)) + '"><span></span></label>' +
-        '<span class="name"><input type="text" value="' + esc(f.label) + '" placeholder="' + esc(fmtDefault(f.k)) + '" aria-label="Button label for ' + esc(fmtDefault(f.k)) + '" maxlength="40"></span>' +
+      var custom = isCustom(f);
+      if (custom) li.classList.add('custom');
+      li.innerHTML = '<div class="fmt-row"><span class="grip" aria-hidden="true" title="Drag to reorder">⋮⋮</span>' +
+        '<label class="switch" title="Show this button"><input type="checkbox" ' + (f.on ? 'checked' : '') + ' aria-label="Show ' + esc(f.label || fmtDefault(f.k)) + '"><span></span></label>' +
+        '<span class="name"><input type="text" data-f="label" value="' + esc(f.label) + '" placeholder="' + esc(custom ? 'Button label, e.g. Coffee bags' : fmtDefault(f.k)) + '" aria-label="Button label" maxlength="40"></span>' +
         '<button type="button" class="mv" data-d="-1" aria-label="Move up" ' + (i === 0 ? 'disabled' : '') + '>▲</button>' +
-        '<button type="button" class="mv" data-d="1" aria-label="Move down" ' + (i === cb.formats.length - 1 ? 'disabled' : '') + '>▼</button>';
+        '<button type="button" class="mv" data-d="1" aria-label="Move down" ' + (i === cb.formats.length - 1 ? 'disabled' : '') + '>▼</button>' +
+        (custom ? '<button type="button" class="mv del" aria-label="Remove this button" title="Remove">✕</button>' : '') + '</div>' +
+        (custom ? '<input type="text" class="msg" data-f="msg" value="' + esc(f.msg || '') + '" placeholder="Message it sends, e.g. I need a quote for 5,000 coffee bags." aria-label="Message this button sends" maxlength="300">' : '');
       $('input[type=checkbox]', li).addEventListener('change', function (e) { f.on = e.target.checked; li.classList.toggle('off', !f.on); updateCb(); });
-      $('.name input', li).addEventListener('input', function (e) { f.label = e.target.value.trim(); updateCb(); });
+      $$('input[data-f]', li).forEach(function (inp) { inp.addEventListener('input', function (e) { f[inp.dataset.f] = e.target.value.trim(); updateCb(); }); });
+      var del = $('.del', li); if (del) del.addEventListener('click', function () { cb.formats.splice(i, 1); renderFormatList(); updateCb(); });
+      $$('input[type=text]', li).forEach(function (inp) { inp.addEventListener('mousedown', function () { li.draggable = false; }); inp.addEventListener('blur', function () { li.draggable = true; }); });
       $$('.mv', li).forEach(function (b) { b.addEventListener('click', function () { move(i, i + +b.dataset.d, true); }); });
       li.addEventListener('dragstart', function (e) { li.classList.add('drag'); e.dataTransfer.effectAllowed = 'move'; e.dataTransfer.setData('text/plain', String(i)); });
       li.addEventListener('dragend', function () { li.classList.remove('drag'); $$('li', ul).forEach(function (x) { x.classList.remove('over'); }); });
@@ -148,6 +155,15 @@
       li.addEventListener('drop', function (e) { e.preventDefault(); var from = +e.dataTransfer.getData('text/plain'); move(from, i); });
       ul.appendChild(li);
     });
+    var on = cb.formats.filter(function (f) { return f.on && (!isCustom(f) || (f.label && f.msg)); }).length;
+    $('#cbFormatsCount').textContent = on + ' shown';
+  }
+  function addCustom() {
+    var n = 1; while (cb.formats.some(function (f) { return f.k === 'custom' + n; })) n++;
+    if (n > 20) return;
+    cb.formats.push({ k: 'custom' + n, on: true, label: '', msg: '' });
+    renderFormatList(); updateCb();
+    var last = $('#cbFormats li:last-child input[data-f="label"]'); if (last) last.focus();
   }
   function move(from, to, keepFocus) {
     if (to < 0 || to >= cb.formats.length || from === to) return;
@@ -159,8 +175,12 @@
   function cbAttrs(forPreview) {
     var a = [['data-willowpack-chat', true], ['data-theme', cb.theme], ['data-accent', cb.accent.toUpperCase()]];
     if (cb.campaign) a.push(['data-campaign', cb.campaign]);
-    a.push(['data-formats', cb.formats.filter(function (f) { return f.on; }).map(function (f) { return f.k; }).join(',')]);
-    cb.formats.forEach(function (f) { if (f.on && f.label && f.label !== fmtDefault(f.k)) a.push(['data-label-' + f.k, f.label]); });
+    var shown = cb.formats.filter(function (f) { return f.on && (!isCustom(f) || (f.label && f.msg)); });
+    a.push(['data-formats', shown.map(function (f) { return f.k; }).join(',')]);
+    shown.forEach(function (f) {
+      if (isCustom(f)) { a.push(['data-label-' + f.k, f.label]); a.push(['data-message-' + f.k, f.msg]); }
+      else if (f.label && f.label !== fmtDefault(f.k)) a.push(['data-label-' + f.k, f.label]);
+    });
     if (cb.placeholder && cb.placeholder !== DEF.placeholder) a.push(['data-placeholder', cb.placeholder]);
     if (cb.button && cb.button !== DEF.button) a.push(['data-button', cb.button]);
     if (cb.hintOff) a.push(['data-hint', '']); else if (cb.hint && cb.hint !== DEF.hint) a.push(['data-hint', cb.hint]);
@@ -215,6 +235,7 @@
       i.addEventListener('input', function () { cb[p[1]] = +i.value; o.textContent = i.value + 'px'; updateCb(); });
     });
     segSnip($('#tab-chat-box'), function (s) { cbSnip = s; updateCb(); });
+    $('#cbAddCustom').addEventListener('click', addCustom);
     renderFormatList(); updateCb();
   }
 
@@ -249,6 +270,11 @@
     var cfg = null, rows = [], total = 0, offset = 0, LIMIT = 50, selected = '', gsiLoaded = false, seq = 0;
     var CH = { web: 'Website', embed: 'Embedded page', voice: 'Phone', 'admin-demo': 'Admin demo', other: 'Other' };
     var STAGE = { quoted: 'Quoted', handed_to_sales: 'With a rep', meeting_booked: 'Call booked', scheduling: 'Booking a call', speccing: 'Speccing', discovery: 'Discovery', closed_no_interest: 'Closed' };
+    var OUTCOME = { active: 'Active', accepted: 'Accepted', call_booked: 'Call booked', abandoned: 'Abandoned', bounced: 'Bounced' };
+    var SF_BASE = 'https://sinalite.lightning.force.com/lightning/r/';
+    function sfUrl(obj, id) { return SF_BASE + obj + '/' + encodeURIComponent(id) + '/view'; }
+    function oc(o) { return '<span class="oc ' + esc(o || '') + '">' + esc(OUTCOME[o] || o || '—') + '</span>'; }
+    function tierBadge(t) { return t ? '<span class="tier ' + esc(t) + '" title="Salesforce AI tier">' + esc(t) + '</span>' : '<span style="color:var(--faint)">—</span>'; }
     function api(url, opts) {
       return fetch(url, Object.assign({ credentials: 'same-origin', headers: { 'Content-Type': 'application/json' } }, opts || {}))
         .then(function (r) { return r.json().catch(function () { return {}; }).then(function (d) { if (!r.ok) { var e = new Error(d.error || ('HTTP ' + r.status)); e.status = r.status; throw e; } return d; }); });
@@ -300,18 +326,23 @@
       });
     }
     function tiles(d) {
-      var bc = d.by_channel || {}, top = (d.by_campaign || []).filter(function (x) { return x.campaign !== '(none)'; })[0], host = (d.by_host || [])[0];
+      var bc = d.by_channel || {}, bo = d.by_outcome || {}, top = (d.by_campaign || []).filter(function (x) { return x.campaign !== '(none)'; })[0];
+      var pct = function (n) { return total ? Math.round(n * 100 / total) + '% of conversations' : ''; };
+      var won = (bo.accepted || 0) + (bo.call_booked || 0);
       $('#cvTiles').innerHTML =
-        tile('Conversations', total, 'matching filters') + tile('Quoted', d.quoted || 0, total ? Math.round((d.quoted || 0) * 100 / total) + '% of conversations' : '') +
-        tile('Website', bc.web || 0, 'willowpack quote page') + tile('Embedded', bc.embed || 0, 'landing pages') + tile('Phone', bc.voice || 0, 'AI voice calls') +
-        tile('Top campaign', top ? top.campaign : '—', top ? top.n + ' chats · ' + top.quoted + ' quoted' : 'no campaigns yet') +
-        tile('Top site', host ? host.host : '—', host ? host.n + ' chats' : '');
+        tile('Conversations', total, (bo.active || 0) + ' active now') +
+        tile('Quoted', d.quoted || 0, pct(d.quoted || 0)) +
+        tile('Accepted / call', won, pct(won)) +
+        tile('Abandoned', bo.abandoned || 0, 'contact captured · Lead created') +
+        tile('Bounced', bo.bounced || 0, 'left without contact details') +
+        tile('Channels', (bc.web || 0) + ' · ' + (bc.embed || 0) + ' · ' + (bc.voice || 0), 'website · landing pages · phone') +
+        tile('Top campaign', top ? top.campaign : '—', top ? top.n + ' chats · ' + top.quoted + ' quoted' : 'no campaigns yet');
     }
     function tile(k, n, s) { return '<div class="tile"><div class="k">' + esc(k) + '</div><div class="n' + (typeof n === 'string' ? ' txt' : '') + '">' + esc(n) + '</div><div class="s">' + esc(s) + '</div></div>'; }
     function facets(fc) {
-      [['campaign', fc.campaigns], ['host', fc.hosts], ['stage', fc.stages]].forEach(function (p) {
+      [['campaign', fc.campaigns], ['host', fc.hosts], ['stage', fc.stages], ['tier', fc.tiers]].forEach(function (p) {
         var sel = $('#cvFilters [name=' + p[0] + ']'), cur = sel.value, first = sel.options[0].outerHTML;
-        sel.innerHTML = first + (p[1] || []).slice().sort().map(function (v) { return '<option value="' + esc(v) + '">' + esc(p[0] === 'stage' ? (STAGE[v] || v) : v) + '</option>'; }).join('');
+        sel.innerHTML = first + (p[1] || []).slice().sort().map(function (v) { return '<option value="' + esc(v) + '">' + esc(p[0] === 'stage' ? (STAGE[v] || v) : p[0] === 'tier' ? 'Tier ' + v : v) + '</option>'; }).join('');
         sel.value = cur;
       });
     }
@@ -325,11 +356,11 @@
         return '<tr tabindex="0" data-id="' + esc(r.session_id) + '"' + (r.session_id === selected ? ' class="sel"' : '') + '>' +
           '<td>' + esc(when(r.updated_at)) + '</td>' +
           '<td class="cust"><b>' + esc(name(r)) + '</b><span>' + esc(r.company || r.first_message || '') + '</span></td>' +
+          '<td>' + oc(r.outcome) + '</td>' +
+          '<td>' + tierBadge(r.ai_tier) + '</td>' +
           '<td class="src"><span class="ch ' + esc(r.channel) + '">' + esc(CH[r.channel] || r.channel) + '</span><span class="h">' + esc(r.source_host || (r.channel === 'voice' ? 'phone call' : '')) + '</span></td>' +
           '<td>' + esc(r.utm_campaign || '—') + (r.utm_source ? '<br><small style="color:var(--faint)">' + esc(r.utm_source + (r.utm_medium ? ' / ' + r.utm_medium : '')) + '</small>' : '') + '</td>' +
-          '<td>' + esc(STAGE[r.stage] || r.stage || '—') + '</td>' +
-          '<td class="num">' + (r.quote_id ? esc(money(r.discounted_total != null ? r.discounted_total : r.quote_total, r.currency)) + '<br><small style="color:var(--faint)">' + esc(r.quote_id) + '</small>' : '—') + '</td>' +
-          '<td class="num">' + esc(r.turn_count) + '</td></tr>';
+          '<td class="num">' + (r.quote_id ? esc(money(r.discounted_total != null ? r.discounted_total : r.quote_total, r.currency)) + '<br><small style="color:var(--faint)">' + esc(r.quote_id) + '</small>' : '—') + '<span class="turns">' + esc(r.turn_count) + ' messages</span></td></tr>';
       }).join('');
       $('#cvCount').textContent = rows.length + ' of ' + total;
       $('#cvMore').hidden = rows.length >= total;
@@ -350,29 +381,46 @@
     function detail(id) {
       selected = id;
       $$('#cvTable tbody tr').forEach(function (tr) { tr.classList.toggle('sel', tr.dataset.id === id); });
-      var box = $('#cvDetail'); box.hidden = false; $('.split').classList.add('has-detail');
+      var box = $('#cvDetail'); box.hidden = false; $('#cvScrim').hidden = false; document.body.style.overflow = 'hidden';
       box.innerHTML = '<div class="dh"><div><h2>Loading…</h2></div></div>';
       api('/api/conversations?id=' + encodeURIComponent(id)).then(function (r) {
         var rowsDl = [
           ['Channel', CH[r.channel] || r.channel], ['Landing page', r.page_url], ['Referrer', r.referrer], ['UTM source', r.utm_source], ['UTM medium', r.utm_medium], ['UTM campaign', r.utm_campaign],
           ['Company', r.company], ['Email', r.email], ['Phone', r.phone], ['Product', r.product_family], ['Stage', STAGE[r.stage] || r.stage],
           ['Quote', r.quote_id ? r.quote_id + ' · ' + money(r.quote_total, r.currency) + (r.discounted_total != null ? ' (discounted ' + money(r.discounted_total, r.currency) + ')' : '') + (r.quantity ? ' · ' + Number(r.quantity).toLocaleString('en-CA') + ' units' : '') : ''],
-          ['Outcome', r.quote_outcome], ['Meeting', r.meeting_time ? r.meeting_time + (r.meeting_rep ? ' with ' + r.meeting_rep : '') : ''],
+          ['Quote outcome', r.quote_outcome], ['Meeting', r.meeting_time ? r.meeting_time + (r.meeting_rep ? ' with ' + r.meeting_rep : '') : ''],
           ['Started', when(r.started_at)], ['Session', r.session_id]
         ].filter(function (x) { return x[1]; });
         var tx = (r.transcript || []).map(function (t) {
           return '<div class="turn">' + (t.user ? '<div class="u">' + esc(t.user).replace(/\n/g, '<br>') + '</div>' : '') + (t.bot ? '<div class="b">' + botHtml(t.bot) + '</div>' : '') + '<div class="ts">' + esc(when(t.ts)) + '</div></div>';
         }).join('') || '<p class="empty">No messages recorded.</p>';
-        box.innerHTML = '<div class="dh"><div><h2>' + esc(name(r)) + '</h2><p>' + esc(r.company || '') + '</p></div><button class="icon-btn" type="button" id="cvClose" aria-label="Close details"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>' +
+        box.innerHTML = '<div class="dh"><div><h2>' + esc(name(r)) + '</h2><p>' + esc(r.company || '') + ' &nbsp;' + oc(r.outcome) + (r.ai_tier ? ' &nbsp;' + tierBadge(r.ai_tier) : '') + '</p></div><button class="icon-btn" type="button" id="cvClose" aria-label="Close details"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>' +
+          sfBox(r) +
           '<dl>' + rowsDl.map(function (x) { var v = esc(x[1]); if (/^https?:\/\//.test(x[1])) v = '<a href="' + esc(x[1]) + '" target="_blank" rel="noopener">' + v + '</a>'; return '<dt>' + esc(x[0]) + '</dt><dd>' + v + '</dd>'; }).join('') + '</dl>' +
           (r.handoff_summary ? '<div class="summary"><b>Handoff summary:</b> ' + esc(r.handoff_summary) + '</div>' : '') +
           '<div class="tx">' + tx + '</div>';
-        $('#cvClose').addEventListener('click', function () { box.hidden = true; selected = ''; $('.split').classList.remove('has-detail'); $$('#cvTable tbody tr').forEach(function (tr) { tr.classList.remove('sel'); }); });
-        if (matchMedia('(max-width:1400px)').matches) box.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        $('#cvClose').addEventListener('click', closeDetail);
+        $('#cvClose').focus();
       }).catch(function (e) { box.innerHTML = '<div class="dh"><h2>Could not load</h2></div><p class="empty">' + esc(e.message) + '</p>'; });
     }
+    function closeDetail() {
+      $('#cvDetail').hidden = true; $('#cvScrim').hidden = true; document.body.style.overflow = ''; selected = '';
+      $$('#cvTable tbody tr').forEach(function (tr) { tr.classList.remove('sel'); });
+    }
+    function sfBox(r) {
+      var sf = r.sf || {}, out = [];
+      if (sf.account && sf.account.id) out.push(sfLink('Account', sfUrl('Account', sf.account.id), sf.account.name || 'Account', [sf.account.ai_tier ? 'AI tier ' + sf.account.ai_tier : '', sf.account.customer_tier ? 'Customer tier ' + sf.account.customer_tier : ''].filter(Boolean).join(' · ')));
+      (sf.quotes || []).forEach(function (q) { out.push(sfLink('Quote', sfUrl('Quote', q.id), (q.number ? '#' + q.number + ' ' : '') + (q.name || ''), [q.status, q.total != null ? money(q.total, r.currency || 'CAD') : '', q.chat_quote_id].filter(Boolean).join(' · '))); if (q.opportunity_id) out.push(sfLink('Opportunity', sfUrl('Opportunity', q.opportunity_id), q.opportunity_name || 'Opportunity', q.stage || '')); });
+      if (sf.lead && sf.lead.id) out.push(sfLink('Lead', sfUrl('Lead', sf.lead.id), name(r), [sf.lead.status, sf.lead.ai_tier ? 'AI tier ' + sf.lead.ai_tier : '', sf.lead.converted ? 'converted' : ''].filter(Boolean).join(' · ')));
+      var note = !out.length ? '<p class="sfnone">' + (r.outcome === 'bounced' ? 'Bounced: no contact details, so nothing was sent to Salesforce.' : r.outcome === 'active' ? 'Still active. Salesforce records are created after 2 hours without a reply, or when a quote is accepted.' : r.email ? 'No Willowpack Salesforce record found for ' + esc(r.email) + ' yet. It is checked every 15 minutes.' : 'No contact details captured.') + '</p>' : '';
+      return '<div class="sfbox"><h3>Salesforce</h3>' + out.join('') + note + '</div>';
+    }
+    function sfLink(kind, url, label, meta) {
+      return '<a class="sflink" href="' + esc(url) + '" target="_blank" rel="noopener"><span class="k">' + esc(kind) + '</span><span class="v">' + esc(label) + (meta ? '<small>' + esc(meta) + '</small>' : '') + '</span><span class="go">Open ↗</span></a>';
+    }
     function csv() {
-      var cols = ['updated_at', 'started_at', 'channel', 'source_host', 'page_url', 'utm_source', 'utm_medium', 'utm_campaign', 'first_name', 'last_name', 'company', 'email', 'phone', 'product_family', 'stage', 'quote_id', 'quote_total', 'discounted_total', 'currency', 'quantity', 'quote_outcome', 'meeting_time', 'turn_count', 'first_message', 'session_id'];
+      var cols = ['updated_at', 'started_at', 'outcome', 'ai_tier', 'channel', 'source_host', 'page_url', 'utm_source', 'utm_medium', 'utm_campaign', 'first_name', 'last_name', 'company', 'email', 'phone', 'product_family', 'stage', 'quote_id', 'quote_total', 'discounted_total', 'currency', 'quantity', 'quote_outcome', 'meeting_time', 'turn_count', 'first_message', 'sf_account_id', 'sf_lead_id', 'sf_quote_ids', 'session_id'];
+      rows.forEach(function (r) { var sf = r.sf || {}; r.sf_account_id = sf.account ? sf.account.id : ''; r.sf_lead_id = sf.lead ? sf.lead.id : ''; r.sf_quote_ids = (sf.quotes || []).map(function (q) { return q.id; }).join(' '); });
       var q = function (v) { v = v == null ? '' : String(v); return /[",\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; };
       var out = [cols.join(',')].concat(rows.map(function (r) { return cols.map(function (c) { return q(r[c]); }).join(','); })).join('\n');
       var a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([out], { type: 'text/csv' })); a.download = 'willowpack-ai-chats-' + new Date().toISOString().slice(0, 10) + '.csv'; a.click();
@@ -383,6 +431,8 @@
     $('#cvFilters').addEventListener('reset', function () { setTimeout(function () { load(true); }, 0); });
     $('#cvFilters').addEventListener('submit', function (e) { e.preventDefault(); load(true); });
     $('#cvMore').addEventListener('click', function () { load(false); });
+    $('#cvScrim').addEventListener('click', closeDetail);
+    addEventListener('keydown', function (e) { if (e.key === 'Escape' && !$('#cvDetail').hidden) closeDetail(); });
     $('#cvExport').addEventListener('click', csv);
     $('#cvSignOut').addEventListener('click', function () { api('/api/auth/logout', { method: 'POST' }).then(function () { cfg.signedIn = false; if (window.google && google.accounts) google.accounts.id.disableAutoSelect(); signIn(); }); });
     return { show: show };
