@@ -206,6 +206,18 @@ const overlayShown = (page) => page.evaluate(() => { const h = document.querySel
     await ap.waitForFunction(() => { const h = document.querySelector('willowpack-overlay'); return h && getComputedStyle(h).display !== 'none'; });
     ok(true, 'admin live preview opens the real overlay');
     await ap.keyboard.press('Escape');
+    await ap.click('#cbAddCustom');
+    await ap.fill('#cbFormats li:last-child input[data-f="label"]', 'Coffee bags');
+    await ap.fill('#cbFormats li:last-child input[data-f="msg"]', 'I need a quote for 5,000 coffee bags.');
+    const code2 = await ap.textContent('#cbCode');
+    ok(/custom1/.test(code2) && /data-label-custom1="Coffee bags"/.test(code2) && /data-message-custom1="I need a quote for 5,000 coffee bags\."/.test(code2), 'custom button goes into the snippet', code2);
+    const outline = await ap.evaluate(() => { const t = document.querySelector('#cbPreview willowpack-chat-box').shadowRoot.querySelector('textarea'); t.focus(); return getComputedStyle(t).outlineStyle; });
+    ok(outline === 'none', 'focused text box has no inner outline (only the outer glow)', outline);
+    await ap.evaluate(() => { const r = document.querySelector('#cbPreview willowpack-chat-box').shadowRoot; [...r.querySelectorAll('.f')].pop().click(); });
+    const cf = ap.frameLocator('willowpack-overlay iframe[title="Willowpack quote assistant"]');
+    await cf.locator('.msg.user .bubble').first().waitFor();
+    ok((await cf.locator('.msg.user .bubble').last().textContent()) === 'I need a quote for 5,000 coffee bags.', 'custom button sends its own message');
+    await ap.keyboard.press('Escape');
     await ap.goto(BASE + '/admin#quotes-button'); await ap.waitForSelector('#qbPreview willowpack-quotes-button');
     ok(/data-willowpack-quotes/.test(await ap.textContent('#qbCode')), 'quotes button snippet');
     for (const t of ['demo', 'faq', 'conversations']) { await ap.goto(BASE + '/admin#' + t); await ap.waitForTimeout(300); }
