@@ -34,6 +34,7 @@
   function esc(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
   function hex(v) { v = String(v || '').trim(); return /^#?[0-9a-f]{6}$/i.test(v) ? '#' + v.replace('#', '') : GREEN; }
   function slug(v) { return String(v || '').toLowerCase().replace(/[^a-z0-9-]/g, '').slice(0, 80); }
+  function cap(k) { return k.charAt(0).toUpperCase() + k.slice(1); }
   function theme(v) { return v === 'light' || v === 'dark' ? v : 'auto'; }
   function pageUrl() { try { var u = new URL(location.href); u.hash = ''; u.searchParams.delete('resume'); return u.toString(); } catch (e) { return location.href.split('#')[0]; } }
   function important(node, css) { for (var k in css) node.style.setProperty(k, css[k], 'important'); }
@@ -226,7 +227,7 @@
     '.c{background:var(--s);border:1px solid var(--ln);border-radius:var(--r);padding:14px 14px 12px 18px;box-shadow:var(--sh);transition:border-color .15s,box-shadow .2s}' +
     '.c:focus-within{border-color:var(--g);box-shadow:var(--sh),0 0 0 4px color-mix(in srgb,var(--g) 18%,transparent)}' +
     'textarea{display:block;width:100%;border:0;background:transparent;resize:none;outline:none;min-height:26px;max-height:180px;line-height:1.5;padding:2px 0 12px;font-size:16.5px}' +
-    'textarea::placeholder{color:var(--fa)}' +
+    'textarea::placeholder{color:var(--fa)}textarea:focus,textarea:focus-visible{outline:none}' +
     '.row{display:flex;align-items:center;gap:10px}.h{font-size:13px;color:var(--fa)}' +
     '.go{margin-left:auto;height:40px;border-radius:999px;border:0;background:var(--g);color:#fff;display:inline-flex;align-items:center;gap:8px;padding:0 16px;font-weight:600;cursor:pointer;white-space:nowrap;transition:background-color .15s,opacity .15s}' +
     '.go:hover{background:var(--g6)}.go:disabled{opacity:.45;cursor:default}.go svg{width:16px;height:16px}' +
@@ -242,10 +243,12 @@
     var radius = parseInt(a.radius, 10);
     var mw = parseInt(a.maxWidth, 10);
     var vars = (radius >= 0 && radius <= 40 ? '--r:' + radius + 'px;' : '') + (mw >= 280 && mw <= 1400 ? '--mw:' + mw + 'px;' : '');
-    var keys = (a.formats == null ? 'pouches,labels,boxes,rollstock,help' : a.formats).split(',').map(function (s) { return s.trim().toLowerCase(); }).filter(function (k) { return FORMATS[k]; });
+    /* Built-in formats, plus custom buttons: data-formats="pouches,custom1" with data-label-custom1 + data-message-custom1 */
+    var keys = (a.formats == null ? 'pouches,labels,boxes,rollstock,help' : a.formats).split(',').map(function (s) { return s.trim().toLowerCase(); })
+      .filter(function (k) { return FORMATS[k] || (/^custom\d{1,2}$/.test(k) && a['message' + cap(k)] && a['label' + cap(k)]); });
     var ph = a.placeholder || DEF.placeholder, btn = a.button || DEF.button, hint = a.hint == null ? DEF.hint : a.hint;
     var ql = a.formatsLabel == null ? DEF.formatsLabel : a.formatsLabel;
-    var chips = keys.map(function (k) { return '<button class="f" type="button" data-k="' + k + '">' + esc(a['label' + k.charAt(0).toUpperCase() + k.slice(1)] || FORMATS[k]) + '</button>'; }).join('');
+    var chips = keys.map(function (k) { return '<button class="f" type="button" data-k="' + k + '">' + esc(a['label' + cap(k)] || FORMATS[k]) + '</button>'; }).join('');
     var id = 'wp' + Math.random().toString(36).slice(2, 8);
     sh.root.innerHTML = '<style>' + TOKENS + accentCss(c) + ':host{' + vars + '}' + BOX_CSS + '</style>' +
       '<div class="w"><form class="c" autocomplete="off"><label class="sr" for="' + id + '">Describe what you’re packaging</label>' +
@@ -259,7 +262,12 @@
     ta.addEventListener('keydown', function (e) { if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) { e.preventDefault(); submit(); } });
     f.addEventListener('submit', function (e) { e.preventDefault(); submit(); });
     function submit() { var v = ta.value.trim(); if (!v) return; ta.value = ''; rs(); go.disabled = true; openChat({ q: v }, c); }
-    sh.root.querySelectorAll('.f').forEach(function (b) { b.addEventListener('click', function () { openChat({ format: b.getAttribute('data-k') }, c); }); });
+    sh.root.querySelectorAll('.f').forEach(function (b) {
+      b.addEventListener('click', function () {
+        var k = b.getAttribute('data-k');
+        if (FORMATS[k]) openChat({ format: k }, c); else openChat({ q: String(a['message' + cap(k)]).slice(0, 2000) }, c);
+      });
+    });
     node.innerHTML = ''; node.appendChild(sh.host);
   }
 
