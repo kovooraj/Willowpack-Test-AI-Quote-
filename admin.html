@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>Quote Chat Admin | Willowpack</title>
+<link rel="icon" href="/assets/mark.png">
+<script>
+/* Theme before paint: same key as the home page */
+(function(){var t;try{t=localStorage.getItem('wp_theme')}catch(e){}
+if(t!=='light'&&t!=='dark'){t=window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'}
+document.documentElement.setAttribute('data-theme',t)})();
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700;800&family=Figtree:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/wp-chat.css">
+<link rel="stylesheet" href="/assets/admin.css">
+</head>
+<body>
+<div class="shell">
+  <header class="topbar">
+    <button class="icon-btn" id="menuBtn" type="button" aria-label="Open menu" aria-controls="side" aria-expanded="false">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+    </button>
+    <img class="logo logo-light" src="/assets/logo.png" width="111" height="24" alt="Willowpack">
+    <img class="logo logo-dark" src="/assets/logo-white.png" width="111" height="24" alt="Willowpack">
+    <span class="spacer"></span>
+    <span class="crumb" id="crumb">Demo</span>
+  </header>
+
+  <aside class="side" id="side" aria-label="Admin navigation">
+    <div class="side-head">
+      <img class="logo logo-light" src="/assets/logo.png" width="120" height="26" alt="Willowpack">
+      <img class="logo logo-dark" src="/assets/logo-white.png" width="120" height="26" alt="Willowpack">
+      <span class="badge">Quote chat admin</span>
+    </div>
+    <nav class="side-nav">
+      <a href="#demo" data-tab="demo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-5A8 8 0 1 1 21 12z"/></svg>Demo</a>
+      <p class="side-group">Install</p>
+      <a href="#chat-box" data-tab="chat-box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="M7 10h10M7 14h6"/></svg>Chat box</a>
+      <a href="#quotes-button" data-tab="quotes-button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"/><path d="M12 8v4l3 2"/></svg>Previous quotes button</a>
+      <a href="#faq" data-tab="faq"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.6v.6M12 17h.01"/></svg>How it works / FAQ</a>
+      <p class="side-group">Data</p>
+      <a href="#conversations" data-tab="conversations"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16v10H8l-4 4z"/><path d="M8 9h8M8 12h5"/></svg>Conversations<span class="lock" title="Google sign-in required">🔒</span></a>
+    </nav>
+    <div class="side-foot">
+      <button class="icon-btn" id="themeBtn" type="button" aria-label="Switch colour theme">
+        <svg class="moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+        <svg class="sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+      </button>
+      <span class="who-am-i" id="whoami"></span>
+    </div>
+  </aside>
+  <div class="scrim" id="scrim"></div>
+
+  <main class="main">
+    <!-- ================= Demo ================= -->
+    <section class="tab" id="tab-demo" data-title="Demo">
+      <div class="demo-head">
+        <div><h1>Demo</h1><p class="sub">The live customer page, running inside the admin. Chats started here are tagged <code>utm_source=admin-demo</code> so sales can filter them out.</p></div>
+        <a class="btn btn-ghost" href="/" target="_blank" rel="noopener">Open in new tab</a>
+      </div>
+      <div class="demo-frame"><iframe id="demoFrame" title="Willowpack quote chat demo" data-src="/?utm_source=admin-demo&amp;utm_medium=admin&amp;utm_campaign=admin-demo"></iframe></div>
+    </section>
+
+    <!-- ================= Chat box builder ================= -->
+    <section class="tab" id="tab-chat-box" data-title="Install · Chat box" hidden>
+      <h1>Chat box</h1>
+      <p class="sub">An inline quote box for any landing page. Visitors type or tap a format and the full chat opens on top of your page. Your headline stays yours: the box has no greeting.</p>
+      <div class="builder">
+        <form class="panel controls" id="cbForm" autocomplete="off">
+          <h2>Settings</h2>
+          <div class="field"><span class="lbl">Theme</span>
+            <div class="seg" role="radiogroup" aria-label="Theme">
+              <label><input type="radio" name="theme" value="light">Light</label><label><input type="radio" name="theme" value="dark" checked>Dark</label><label><input type="radio" name="theme" value="auto">Auto</label>
+            </div>
+            <small>Auto follows the visitor’s device setting.</small>
+          </div>
+          <div class="field"><label class="lbl" for="cbAccentHex">Accent colour</label>
+            <div class="color"><input type="color" id="cbAccent" value="#1f9f71" aria-label="Pick accent colour"><input type="text" id="cbAccentHex" value="#1F9F71" maxlength="7" spellcheck="false"><button class="link" type="button" data-reset-accent>Reset</button></div>
+          </div>
+          <div class="field"><label class="lbl" for="cbCampaign">Campaign tag</label>
+            <input type="text" id="cbCampaign" placeholder="spring-pouch-promo" maxlength="80" spellcheck="false">
+            <small id="cbCampaignHelp">Goes to Salesforce as <b>UTM Campaign</b>. Lowercase letters, numbers and hyphens. A <code>utm_campaign</code> in the page URL wins over this.</small>
+          </div>
+          <div class="field"><span class="lbl">Format buttons</span>
+            <small>Toggle on/off and drag to reorder (or use the arrows).</small>
+            <ul class="fmt-list" id="cbFormats"></ul>
+          </div>
+          <details class="field more">
+            <summary>Text &amp; style</summary>
+            <label class="lbl" for="cbPlaceholder">Input placeholder</label><input type="text" id="cbPlaceholder" placeholder="e.g. 10,000 roll labels for our new SKU">
+            <label class="lbl" for="cbButton">Button text</label><input type="text" id="cbButton" placeholder="Get my quote">
+            <label class="lbl" for="cbHint">Reassurance line</label><input type="text" id="cbHint" placeholder="No account needed · Price breaks in seconds · A real rep finalizes it">
+            <label class="check"><input type="checkbox" id="cbHintOff">Hide the reassurance line</label>
+            <label class="lbl" for="cbFormatsLabel">Label above format buttons</label><input type="text" id="cbFormatsLabel" placeholder="Or start with a format">
+            <label class="check"><input type="checkbox" id="cbFormatsLabelOff">Hide this label</label>
+            <label class="lbl" for="cbRadius">Corner radius <output id="cbRadiusOut">20px</output></label><input type="range" id="cbRadius" min="0" max="32" value="20">
+            <label class="lbl" for="cbWidth">Max width <output id="cbWidthOut">760px</output></label><input type="range" id="cbWidth" min="320" max="1100" step="10" value="760">
+            <label class="check"><input type="checkbox" id="cbFontInherit">Use the landing page’s font instead of Figtree</label>
+          </details>
+        </form>
+
+        <div class="right">
+          <div class="panel">
+            <div class="panel-head"><h2>Live preview</h2><span class="pill-note">Real embed.js · click it to open the real overlay</span></div>
+            <div class="mock" id="cbMock" data-t="dark">
+              <div class="mock-bar"><i></i><i></i><i></i><span>your-landing-page.com</span></div>
+              <div class="mock-page">
+                <h3 class="mock-h">Custom pouches for your next launch</h3>
+                <p class="mock-p">Your headline and copy go here, written in Unbounce.</p>
+                <div id="cbPreview"></div>
+              </div>
+            </div>
+          </div>
+          <div class="panel">
+            <div class="panel-head"><h2>Your code</h2>
+              <div class="seg small" role="tablist"><button type="button" class="on" data-snip="full">Box + script</button><button type="button" data-snip="div">Box only</button><button type="button" data-snip="script">Script only</button></div>
+            </div>
+            <pre class="code" id="cbCode"></pre>
+            <div class="code-actions"><button class="btn btn-primary" type="button" data-copy="cbCode">Copy code</button><span class="copied" aria-live="polite"></span></div>
+            <p class="small-note">Add the script once per page, even with several boxes and buttons. It loads in the background and won’t slow the page.</p>
+          </div>
+          <div class="panel steps-panel" data-steps="chat"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= Quotes button builder ================= -->
+    <section class="tab" id="tab-quotes-button" data-title="Install · Previous quotes button" hidden>
+      <h1>Previous quotes button</h1>
+      <p class="sub">A button that opens the visitor’s saved quote chats from this browser. Picking one reopens that chat right where they left off.</p>
+      <div class="builder">
+        <form class="panel controls" id="qbForm" autocomplete="off">
+          <h2>Settings</h2>
+          <div class="field"><label class="lbl" for="qbLabel">Label</label><input type="text" id="qbLabel" value="Previous quotes" maxlength="40"></div>
+          <div class="field"><span class="lbl">Style</span>
+            <div class="seg" role="radiogroup" aria-label="Style"><label><input type="radio" name="variant" value="outline" checked>Outline</label><label><input type="radio" name="variant" value="filled">Filled</label></div>
+          </div>
+          <div class="field"><span class="lbl">Theme</span>
+            <div class="seg" role="radiogroup" aria-label="Theme"><label><input type="radio" name="qtheme" value="light">Light</label><label><input type="radio" name="qtheme" value="dark" checked>Dark</label><label><input type="radio" name="qtheme" value="auto">Auto</label></div>
+          </div>
+          <div class="field"><label class="lbl" for="qbAccentHex">Accent colour</label>
+            <div class="color"><input type="color" id="qbAccent" value="#1f9f71" aria-label="Pick accent colour"><input type="text" id="qbAccentHex" value="#1F9F71" maxlength="7" spellcheck="false"><button class="link" type="button" data-reset-accent>Reset</button></div>
+          </div>
+        </form>
+        <div class="right">
+          <div class="panel">
+            <div class="panel-head"><h2>Live preview</h2><span class="pill-note">Click to open the real quotes overlay</span></div>
+            <div class="mock" id="qbMock" data-t="dark">
+              <div class="mock-bar"><i></i><i></i><i></i><span>your-landing-page.com</span></div>
+              <div class="mock-page mock-nav"><span class="mock-brand">Your brand</span><span class="spacer"></span><div id="qbPreview"></div></div>
+            </div>
+          </div>
+          <div class="panel">
+            <div class="panel-head"><h2>Your code</h2>
+              <div class="seg small" role="tablist"><button type="button" class="on" data-snip="full">Button + script</button><button type="button" data-snip="div">Button only</button><button type="button" data-snip="script">Script only</button></div>
+            </div>
+            <pre class="code" id="qbCode"></pre>
+            <div class="code-actions"><button class="btn btn-primary" type="button" data-copy="qbCode">Copy code</button><span class="copied" aria-live="polite"></span></div>
+            <p class="small-note">Already added the chat box script on this page? Paste the button only.</p>
+          </div>
+          <div class="panel steps-panel" data-steps="quotes"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= FAQ ================= -->
+    <section class="tab narrow" id="tab-faq" data-title="Install · How it works" hidden>
+      <h1>How it works</h1>
+      <p class="sub">What visitors see, what gets tracked, and what to check when something looks off.</p>
+      <div class="flow">
+        <div><b>1</b><h3>Inline box</h3><p>Sits in your page. Visitor types what they’re packaging or taps a format.</p></div>
+        <div><b>2</b><h3>Full-screen chat</h3><p>Opens on top of the same page (no new tab). The first message is already sent.</p></div>
+        <div><b>3</b><h3>Close &amp; come back</h3><p>Closing keeps the chat. A “Continue my quote” button brings it back.</p></div>
+        <div><b>4</b><h3>Email links</h3><p>Quote emails link to your landing page with <code>?resume=</code>, which reopens that chat automatically.</p></div>
+      </div>
+      <div class="faq">
+        <details open><summary>What gets sent to Salesforce?</summary>
+          <p>Every chat records the <b>landing page URL</b> the visitor was on (not our chat URL) plus <b>UTM Source, Medium and Campaign</b>. UTMs come from the landing page’s own URL (e.g. from your ads). If the URL has no <code>utm_campaign</code>, the box’s <b>Campaign tag</b> is used. These are saved on the first message of a chat and pushed to Salesforce with the lead.</p></details>
+        <details><summary>Why can’t a customer see quotes they started on willowpack.com?</summary>
+          <p>Quote history is saved in the visitor’s browser, and browsers keep it separate <b>per browser and per website</b>. A chat started on willowpack.com won’t show on an Unbounce page (and vice versa), and it won’t follow the customer to their phone. Their quote email link always works: it reopens the chat on the page where it started.</p></details>
+        <details><summary>Can I put several boxes or buttons on one page?</summary>
+          <p>Yes. Paste the <code>&lt;div&gt;</code> wherever you want each one and the script once. They all share one chat, so a visitor never ends up with two conversations.</p></details>
+        <details><summary>Will Unbounce styles break it, or will it break my page?</summary>
+          <p>No. The box is drawn in an isolated layer (Shadow DOM), so page CSS can’t reach it and its styles can’t leak out. It adds nothing to the page except <code>window.WillowpackChat</code>.</p></details>
+        <details><summary>Can I open the chat from my own button?</summary>
+          <p>Yes, with a tiny bit of JavaScript after the script loads:</p>
+          <pre class="code">&lt;a href="#" onclick="WillowpackChat.open({ format: 'pouches' }); return false;"&gt;Quote pouches&lt;/a&gt;
+&lt;a href="#" onclick="WillowpackChat.open({ q: '5,000 coffee bags' }); return false;"&gt;Price coffee bags&lt;/a&gt;
+&lt;a href="#" onclick="WillowpackChat.openQuotes(); return false;"&gt;My quotes&lt;/a&gt;</pre>
+          <p>Formats: <code>pouches</code>, <code>labels</code>, <code>boxes</code>, <code>rollstock</code>, <code>help</code>. Analytics can listen for <code>willowpack:session</code> and <code>willowpack:quote</code> events on <code>window</code>.</p></details>
+        <details><summary>Troubleshooting</summary>
+          <ul>
+            <li><b>Nothing shows where the box should be:</b> check the script is added (Page Properties → Javascripts) and that you published after adding it. Unbounce’s editor doesn’t run scripts; use Preview.</li>
+            <li><b>The box shows but is cut off:</b> make the Custom HTML element taller in Unbounce. The box needs about 220px of height (more on mobile when the format buttons wrap).</li>
+            <li><b>Campaign isn’t in Salesforce:</b> the campaign is saved on the first message of a chat. Test in a private window so you start a fresh chat.</li>
+            <li><b>Resume link opens the page but not the chat:</b> the script must be on the page the link points to.</li>
+            <li><b>Still stuck?</b> Open the page with <code>?wp_debug=1</code> and check the browser console for <code>[willowpack]</code> lines.</li>
+          </ul></details>
+      </div>
+    </section>
+
+    <!-- ================= Conversations ================= -->
+    <section class="tab wide" id="tab-conversations" data-title="Conversations" hidden>
+      <div class="demo-head">
+        <div><h1>Conversations</h1><p class="sub">Every AI quote chat from every source: the website, embedded landing pages, phone calls and admin demos. Stored in Supabase (<code>ai_inbound_sales_chat.chats</code>).</p></div>
+        <div class="row-actions" id="cvActions" hidden><button class="btn btn-ghost" type="button" id="cvExport">Export CSV</button><button class="btn btn-ghost" type="button" id="cvSignOut">Sign out</button></div>
+      </div>
+      <div class="panel signin" id="cvSignin" hidden>
+        <h2>Sign in to view conversations</h2>
+        <p>These contain customer names, emails and transcripts, so they’re limited to Willowpack and SinaLite Google accounts, the same login as the Pricing Engine and HeartbeatOS.</p>
+        <div id="gsiBtn"></div>
+        <p class="err" id="cvSigninErr" role="alert"></p>
+      </div>
+      <div id="cvApp" hidden>
+        <div class="tiles" id="cvTiles"></div>
+        <form class="filters" id="cvFilters" autocomplete="off">
+          <input type="search" name="q" placeholder="Search name, company, email, quote, first message…" aria-label="Search">
+          <select name="channel" aria-label="Channel"><option value="">All channels</option><option value="web">Website</option><option value="embed">Embedded page</option><option value="voice">Phone</option><option value="admin-demo">Admin demo</option></select>
+          <select name="campaign" aria-label="Campaign"><option value="">All campaigns</option></select>
+          <select name="host" aria-label="Source site"><option value="">All sites</option></select>
+          <select name="stage" aria-label="Stage"><option value="">All stages</option></select>
+          <label class="date">From <input type="date" name="from"></label>
+          <label class="date">To <input type="date" name="to"></label>
+          <button class="link" type="reset">Clear</button>
+        </form>
+        <div class="split">
+          <div class="panel table-wrap"><table class="cv" id="cvTable"><thead><tr><th>Last activity</th><th>Customer</th><th>Source</th><th>Campaign</th><th>Stage</th><th class="num">Quote</th><th class="num">Turns</th></tr></thead><tbody></tbody></table>
+            <div class="more-row"><span id="cvCount"></span><button class="btn btn-ghost" type="button" id="cvMore" hidden>Load more</button></div>
+          </div>
+          <aside class="panel detail" id="cvDetail" hidden aria-live="polite"></aside>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+<script src="/assets/admin.js"></script>
+<script src="/embed.js" async></script>
+</body>
+</html>
