@@ -40,7 +40,7 @@ const chatFrame = (page) => page.frameLocator('willowpack-overlay iframe[title="
 const overlayShown = (page) => page.evaluate(() => { const h = document.querySelector('willowpack-overlay'); return !!h && getComputedStyle(h).display !== 'none'; });
 
 (async () => {
-  const server = spawn(process.execPath, [path.join(ROOT, 'scripts/dev-server.js'), String(PORT)], { stdio: 'pipe' });
+  const server = spawn(process.execPath, [path.join(ROOT, 'scripts/dev-server.js'), String(PORT)], { stdio: 'pipe', env: Object.assign({}, process.env, { SESSION_SECRET: 'test-only-secret', SUPABASE_READ_TOKEN: 'test-only-token', SUPABASE_URL: 'http://127.0.0.1:9' }) });
   await new Promise((r) => server.stdout.once('data', r));
   const browser = await chromium.launch();
   try {
@@ -188,6 +188,40 @@ const overlayShown = (page) => page.evaluate(() => { const h = document.querySel
       if (SHOTS) await mp.screenshot({ path: path.join(SHOTS, 'mobile-' + name.replace(/\s/g, '-') + '.png') });
       await mctx.close();
     }
+
+    /* ---------- admin + API ---------- */
+    const actx = await browser.newContext({ viewport: { width: 1280, height: 900 } }); await stubN8n(actx, []);
+    const ap = await actx.newPage(); const aerr = []; ap.on('pageerror', (e) => aerr.push(e.message));
+    await ap.goto(BASE + '/admin#chat-box');
+    await ap.waitForSelector('#cbPreview willowpack-chat-box');
+    await ap.fill('#cbCampaign', 'Spring Promo');
+    ok(await ap.locator('#cbCampaign.bad').count() === 1, 'campaign slug validation flags "Spring Promo"');
+    await ap.click('#cbFix');
+    ok((await ap.inputValue('#cbCampaign')) === 'spring-promo', 'campaign suggestion applied');
+    await ap.click('#cbFormats li:nth-child(5) .mv[data-d="-1"]');
+    const code = await ap.textContent('#cbCode');
+    ok(/data-campaign="spring-promo"/.test(code) && /data-formats="pouches,labels,boxes,help,rollstock"/.test(code) && /embed\.js" async><\/script>/.test(code), 'snippet reflects settings + reorder', code);
+    ok(!/data-surface/.test(code), 'snippet does not include the admin-only preview tag');
+    await ap.evaluate(() => document.querySelector('#cbPreview willowpack-chat-box').shadowRoot.querySelector('.f').click());
+    await ap.waitForFunction(() => { const h = document.querySelector('willowpack-overlay'); return h && getComputedStyle(h).display !== 'none'; });
+    ok(true, 'admin live preview opens the real overlay');
+    await ap.keyboard.press('Escape');
+    await ap.goto(BASE + '/admin#quotes-button'); await ap.waitForSelector('#qbPreview willowpack-quotes-button');
+    ok(/data-willowpack-quotes/.test(await ap.textContent('#qbCode')), 'quotes button snippet');
+    for (const t of ['demo', 'faq', 'conversations']) { await ap.goto(BASE + '/admin#' + t); await ap.waitForTimeout(300); }
+    ok(await ap.locator('#cvSignin').isVisible() && !(await ap.locator('#cvActions').isVisible()), 'conversations asks for Google sign-in when signed out');
+    ok(aerr.length === 0, 'admin has no page errors', aerr.join('; '));
+    const unauth = await fetch(BASE + '/api/conversations'); ok(unauth.status === 401, '/api/conversations requires sign-in');
+    const forged = await fetch(BASE + '/api/conversations', { headers: { cookie: 'wpa_session=eyJlbWFpbCI6ImFAc2luYWxpdGUuY29tIiwiZXhwIjo5OTk5OTk5OTk5OTk5fQ.bad' } }); ok(forged.status === 401, 'forged session cookie rejected');
+    process.env.SESSION_SECRET = 'test-only-secret'; delete require.cache[require.resolve('../api/_lib')];
+    const goodCookie = require('../api/_lib').makeSession({ email: 'qa@willowpack.com', name: 'QA' });
+    const authed = await fetch(BASE + '/api/conversations', { headers: { cookie: 'wpa_session=' + encodeURIComponent(goodCookie) } });
+    ok(authed.status === 502, 'valid signed session passes auth (then reaches Supabase)', String(authed.status));
+    const outsider = require('../api/_lib').makeSession({ email: 'someone@gmail.com' });
+    const o = await fetch(BASE + '/api/conversations', { headers: { cookie: 'wpa_session=' + encodeURIComponent(outsider) } });
+    ok(o.status === 401, 'signed session for a non-Willowpack/SinaLite email rejected');
+    const xsite = await fetch(BASE + '/api/auth/login', { method: 'POST', headers: { 'Content-Type': 'application/json', Origin: 'https://evil.example' }, body: '{"credential":"x"}' }); ok(xsite.status === 403, 'cross-origin login POST rejected');
+    await actx.close();
 
     /* ---------- home page untouched ---------- */
     const hctx = await browser.newContext(); const hlog = []; await stubN8n(hctx, hlog);
