@@ -4,7 +4,7 @@
 'use strict';
 const { readSession, json, rpc, dbSecret } = require('./_lib');
 
-const FILTERS = ['channel', 'campaign', 'source', 'host', 'stage', 'q', 'from', 'to', 'limit', 'offset'];
+const FILTERS = ['channel', 'campaign', 'source', 'host', 'stage', 'tier', 'outcome', 'q', 'from', 'to', 'limit', 'offset'];
 
 module.exports = async (req, res) => {
   if (req.method !== 'GET') return json(res, 405, { error: 'method not allowed' });
