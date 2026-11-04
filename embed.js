@@ -12,7 +12,7 @@
   'use strict';
   if (w.WillowpackChat && w.WillowpackChat.version) { w.WillowpackChat.scan(); return; }
 
-  var VERSION = '1.0.1';
+  var VERSION = '1.0.2';
   var script = d.currentScript || d.querySelector('script[src*="embed.js"],script[src*="/embed/v1.js"]');
   var BASE = 'https://willowpacktestaiquote.vercel.app';
   try { if (script && script.src) BASE = new URL(script.src, location.href).origin; } catch (e) {}
@@ -36,7 +36,7 @@
   function slug(v) { return String(v || '').toLowerCase().replace(/[^a-z0-9-]/g, '').slice(0, 80); }
   function cap(k) { return k.charAt(0).toUpperCase() + k.slice(1); }
   function theme(v) { return v === 'light' || v === 'dark' ? v : 'auto'; }
-  function pageUrl() { try { var u = new URL(location.href); u.hash = ''; u.searchParams.delete('resume'); return u.toString(); } catch (e) { return location.href.split('#')[0]; } }
+  function pageUrl() { try { var u = new URL(location.href); u.hash = ''; u.searchParams.delete('resume'); u.searchParams.delete('ask'); return u.toString(); } catch (e) { return location.href.split('#')[0]; } }
   function important(node, css) { for (var k in css) node.style.setProperty(k, css[k], 'important'); }
   function cfgFrom(node) {
     var a = node ? node.dataset : {};
@@ -170,8 +170,8 @@
     fonts(); buildOverlay(c);
     if (!chatFrame) {
       current = c; restyle(c);
-      chatFrame = makeFrame(frameSrc('/embed/chat', c, { q: opts.q ? String(opts.q).slice(0, 2000) : '', format: opts.format || '', resume: opts.resume || '', 'new': opts.fresh ? '1' : '' }), 'Willowpack quote assistant');
-    } else if (opts.resume || opts.fresh) post(chatFrame, 'wp:resume', { resume: opts.resume || '', fresh: !!opts.fresh });
+      chatFrame = makeFrame(frameSrc('/embed/chat', c, { q: opts.q ? String(opts.q).slice(0, 2000) : '', format: opts.format || '', resume: opts.resume || '', ask: opts.ask || '', 'new': opts.fresh ? '1' : '' }), 'Willowpack quote assistant');
+    } else if (opts.resume || opts.fresh) post(chatFrame, 'wp:resume', { resume: opts.resume || '', fresh: !!opts.fresh, ask: opts.ask || '' });
     else if (opts.q || opts.format) post(chatFrame, 'wp:ask', { q: opts.q ? String(opts.q).slice(0, 2000) : '', format: opts.format || '' });
     else post(chatFrame, 'wp:focus');
     show(chatFrame);
@@ -297,8 +297,9 @@
     /* Customer email links land on <landing page>?resume=<session_id> */
     var r = ''; try { r = new URL(location.href).searchParams.get('resume') || ''; } catch (e) {}
     if (/^[A-Za-z0-9-]{8,64}$/.test(r)) {
-      try { var u = new URL(location.href); u.searchParams.delete('resume'); history.replaceState(history.state, '', u.pathname + u.search + u.hash); } catch (e) {}
-      openChat({ resume: r });
+      var askBook = false; try { askBook = new URL(location.href).searchParams.get('ask') === 'book'; } catch (e) {}
+      try { var u = new URL(location.href); u.searchParams.delete('resume'); u.searchParams.delete('ask'); history.replaceState(history.state, '', u.pathname + u.search + u.hash); } catch (e) {}
+      openChat({ resume: r, ask: askBook ? 'book' : '' });
     }
   }
 

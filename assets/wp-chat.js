@@ -14,6 +14,7 @@
   var HISTORY_URL = 'https://n8n.sinaprinting.com/webhook/willowpack-quote-history';
   var CALL_URL = 'https://n8n.sinaprinting.com/webhook/willowpack-call-request';
   var MARK = '/assets/mark.png';
+  var BOOK_MSG = 'I’d like to book a call with a Willowpack rep to finalize this quote.';
 
   /* Format buttons: same labels and first messages as the home page hero chips. */
   var FORMATS = {
@@ -118,6 +119,7 @@
       resume: validId(q.get('resume')) ? q.get('resume') : '',
       surface: q.get('surface') === 'admin-demo' ? 'admin-demo' : 'embed',
       fresh: q.get('new') === '1',
+      ask: q.get('ask') === 'book' ? 'book' : '',
       ref: (q.get('ref') || '').slice(0, 500),
       sourceUrl: '', sourceOrigin: '', utm: {}
     };
@@ -246,7 +248,7 @@
 
   function chatUrl(cfg, extra) {
     var p = new URLSearchParams(location.search);
-    ['q', 'format', 'resume', 'new'].forEach(function (k) { p.delete(k); });
+    ['q', 'format', 'resume', 'new', 'ask'].forEach(function (k) { p.delete(k); });
     Object.keys(extra || {}).forEach(function (k) { if (extra[k]) p.set(k, extra[k]); });
     return '/embed/chat?' + p.toString();
   }
@@ -298,6 +300,7 @@
 
     var chat = $('#chat'), inner = $('#threadInner'), thread = $('#thread'), input = $('#chatInput'), send = $('#chatSend');
     var busy = false, started = false, stage = 0, engaged = false, bookedNow = false, lastSent = '';
+    var pendingAsk = cfg.ask === 'book' && cfg.resume ? BOOK_MSG : '';
     function updateCallBtn() { $('#callBtn').classList.toggle('show', engaged && !bookedNow); }
     function announceSession() { bridge.send('wp:session', { session_id: sessionId }); }
 
@@ -431,7 +434,7 @@
         var me = (d.sessions || [])[0]; if (me && me.meeting_time) showMeeting({ time: me.meeting_time, rep: me.meeting_rep });
         announceSession();
       }).catch(function () { t.remove(); addBot('I couldn’t load that earlier chat right now. You can keep going here, or start a new quote.'); })
-        .then(function () { busy = false; send.disabled = !input.value.trim(); scrollEnd(); });
+        .then(function () { busy = false; send.disabled = !input.value.trim(); scrollEnd(); if (pendingAsk) { var a = pendingAsk; pendingAsk = ''; ask(a); } });
     }
     /* Entry point shared by first load and parent commands (same logic as openChat(prefill) on the home page) */
     function start(prefill) {
@@ -498,7 +501,7 @@
 
     $('#callBtn').addEventListener('click', openCall);
     $('#closeChat').addEventListener('click', closeChat);
-    $('#bookBtn').addEventListener('click', function () { if ($('#bookBtn').classList.contains('booked')) return; ask('I’d like to book a call with a Willowpack rep to finalize this quote.'); });
+    $('#bookBtn').addEventListener('click', function () { if ($('#bookBtn').classList.contains('booked')) return; ask(BOOK_MSG); });
     $('#newQuote').addEventListener('click', function () { newInquiry(''); input.focus(); });
     $('#historyBtn').addEventListener('click', function () { chat.classList.contains('show-history') ? closeHistory() : openHistory(); });
     $('#historyClose').addEventListener('click', closeHistory);
@@ -514,7 +517,7 @@
       if (text && !busy && text === lastSent && engaged) { input.focus(); return; }
       start(text); setTimeout(function () { input.focus(); }, 30);
     });
-    bridge.on('wp:resume', function (d) { if (d.fresh) newInquiry(''); else resume(d.resume); setTimeout(function () { input.focus(); }, 30); });
+    bridge.on('wp:resume', function (d) { if (d.ask === 'book') pendingAsk = BOOK_MSG; if (d.fresh) newInquiry(''); else resume(d.resume); setTimeout(function () { input.focus(); }, 30); });
     bridge.on('wp:focus', function () { input.focus(); });
 
     /* ---------- First run ---------- */
