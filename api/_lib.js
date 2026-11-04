@@ -4,8 +4,9 @@
  *   GOOGLE_CLIENT_ID        same OAuth client as the Pricing Engine (add this site under "Authorized JavaScript origins")
  *   ADMIN_EMAIL_DOMAINS     optional, default "sinalite.com,willowpack.com"
  *   ADMIN_EMAILS            optional, extra individual addresses
- *   SUPABASE_READ_TOKEN     read token for public.ai_chat_list / ai_chat_get (scope 'read' in ai_inbound_sales_chat.api_tokens)
- *   SESSION_SECRET          optional; HMAC key for the session cookie (falls back to a key derived from SUPABASE_READ_TOKEN)
+ *   SUPABASE_SERVICE_ROLE_KEY  service-role key of the Supabase project (server-only; used to call ai_chat_list / ai_chat_get)
+ *     or SUPABASE_READ_TOKEN   alternative: a 'read' token from ai_inbound_sales_chat.api_tokens (with the publishable key)
+ *   SESSION_SECRET          optional; HMAC key for the session cookie (falls back to a key derived from the Supabase secret)
  *   SUPABASE_URL / SUPABASE_PUBLISHABLE_KEY  optional overrides (publishable key is not a secret)
  */
 'use strict';
@@ -19,8 +20,9 @@ const SUPABASE_KEY = process.env.SUPABASE_PUBLISHABLE_KEY || 'sb_publishable_E4k
 function domains() { return (process.env.ADMIN_EMAIL_DOMAINS || 'sinalite.com,willowpack.com').split(',').map((s) => s.trim().toLowerCase()).filter(Boolean); }
 function emails() { return (process.env.ADMIN_EMAILS || '').split(',').map((s) => s.trim().toLowerCase()).filter(Boolean); }
 function allowed(email) { const e = String(email || '').toLowerCase(); return emails().includes(e) || domains().includes(e.split('@')[1] || ''); }
+function dbSecret() { return process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_READ_TOKEN || ''; }
 function secret() {
-  const s = process.env.SESSION_SECRET || (process.env.SUPABASE_READ_TOKEN ? crypto.createHash('sha256').update('wpa-session:' + process.env.SUPABASE_READ_TOKEN).digest('hex') : '');
+  const s = process.env.SESSION_SECRET || (dbSecret() ? crypto.createHash('sha256').update('wpa-session:' + dbSecret()).digest('hex') : '');
   return s || null;
 }
 function sign(payload) { return crypto.createHmac('sha256', secret()).update(payload).digest('base64url'); }
@@ -62,15 +64,19 @@ async function readBody(req) {
   return await new Promise((resolve) => { let b = ''; req.on('data', (c) => { b += c; if (b.length > 1e5) req.destroy(); }); req.on('end', () => { try { resolve(JSON.parse(b || '{}')); } catch (e) { resolve({}); } }); });
 }
 
+/* Calls a token-checked RPC. With the service-role key the database accepts the call by role; otherwise p_token must be a 'read' token. */
 async function rpc(fn, args) {
+  const svc = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const key = svc || SUPABASE_KEY;
+  const body = Object.assign({}, args, { p_token: svc ? '' : (process.env.SUPABASE_READ_TOKEN || '') });
   const r = await fetch(SUPABASE_URL + '/rest/v1/rpc/' + fn, {
     method: 'POST',
-    headers: { apikey: SUPABASE_KEY, Authorization: 'Bearer ' + SUPABASE_KEY, 'Content-Type': 'application/json' },
-    body: JSON.stringify(args)
+    headers: Object.assign({ apikey: key, 'Content-Type': 'application/json' }, /^eyJ/.test(key) ? { Authorization: 'Bearer ' + key } : {}),
+    body: JSON.stringify(body)
   });
   const text = await r.text();
   if (!r.ok) { const e = new Error('supabase ' + r.status + ': ' + text.slice(0, 200)); e.status = r.status; throw e; }
   return text ? JSON.parse(text) : null;
 }
 
-module.exports = { COOKIE, SESSION_DAYS, domains, allowed, secret, makeSession, readSession, setCookie, json, sameOrigin, readBody, rpc };
+module.exports = { dbSecret, COOKIE, SESSION_DAYS, domains, allowed, secret, makeSession, readSession, setCookie, json, sameOrigin, readBody, rpc };
