@@ -1,9 +1,31 @@
 {
   "cleanUrls": true,
+  "rewrites": [
+    { "source": "/embed/v1.js", "destination": "/embed.js" }
+  ],
   "headers": [
     { "source": "/(.*)", "headers": [
       { "key": "X-Content-Type-Options", "value": "nosniff" },
       { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" }
+    ] },
+    { "source": "/embed/(.*)", "headers": [
+      { "key": "Content-Security-Policy", "value": "frame-ancestors *" }
+    ] },
+    { "source": "/embed.js", "headers": [
+      { "key": "Access-Control-Allow-Origin", "value": "*" },
+      { "key": "Cache-Control", "value": "public, max-age=300, stale-while-revalidate=86400" }
+    ] },
+    { "source": "/embed/v1.js", "headers": [
+      { "key": "Access-Control-Allow-Origin", "value": "*" },
+      { "key": "Cache-Control", "value": "public, max-age=86400, stale-while-revalidate=604800" }
+    ] },
+    { "source": "/admin", "headers": [
+      { "key": "X-Frame-Options", "value": "SAMEORIGIN" },
+      { "key": "X-Robots-Tag", "value": "noindex" }
+    ] },
+    { "source": "/api/(.*)", "headers": [
+      { "key": "Cache-Control", "value": "no-store" },
+      { "key": "X-Robots-Tag", "value": "noindex" }
     ] }
   ]
 }
