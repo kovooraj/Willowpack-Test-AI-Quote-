@@ -16,7 +16,7 @@
   });
 
   /* ---------- routing + mobile drawer ---------- */
-  var TABS = ['demo', 'chat-box', 'quotes-button', 'faq', 'conversations'];
+  var TABS = ['demo', 'chat-box', 'quotes-button', 'faq', 'map', 'conversations'];
   var side = $('#side'), scrim = $('#scrim'), menuBtn = $('#menuBtn');
   function drawer(open) { side.classList.toggle('open', open); scrim.classList.toggle('open', open); menuBtn.setAttribute('aria-expanded', open ? 'true' : 'false'); }
   menuBtn.addEventListener('click', function () { drawer(!side.classList.contains('open')); });
@@ -25,12 +25,14 @@
   function route() {
     var t = (location.hash || '#demo').slice(1); if (TABS.indexOf(t) < 0) t = 'demo';
     TABS.forEach(function (k) { $('#tab-' + k).hidden = k !== t; });
-    $$('.side-nav a').forEach(function (a) { if (a.dataset.tab === t) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current'); });
+    var nav = t === 'map' ? 'faq' : t; /* the map lives under How it works */
+    $$('.side-nav a').forEach(function (a) { if (a.dataset.tab === nav) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current'); });
     $('#crumb').textContent = $('#tab-' + t).dataset.title;
     document.title = $('#tab-' + t).dataset.title + ' | Willowpack quote chat admin';
     drawer(false);
     if (t === 'demo') { var f = $('#demoFrame'); if (!f.src) f.src = f.dataset.src; }
     if (t === 'conversations') Conv.show();
+    if (window.WPSystemMap) { if (t === 'map') WPSystemMap.show(); else WPSystemMap.hide(); }
     if (t === 'chat-box' || t === 'quotes-button') ready(function () { WillowpackChat.scan(); });
     scrollTo(0, 0);
   }

@@ -220,6 +220,22 @@ const overlayShown = (page) => page.evaluate(() => { const h = document.querySel
     await ap.keyboard.press('Escape');
     await ap.goto(BASE + '/admin#quotes-button'); await ap.waitForSelector('#qbPreview willowpack-quotes-button');
     ok(/data-willowpack-quotes/.test(await ap.textContent('#qbCode')), 'quotes button snippet');
+
+    /* system map: Map button on How it works, cards + connectors, detail panel, journeys */
+    await ap.goto(BASE + '/admin#faq'); await ap.click('.map-btn'); await ap.waitForSelector('#smap .smap-node');
+    ok(/#map$/.test(ap.url()) && (await ap.getAttribute('.side-nav a[aria-current]', 'data-tab')) === 'faq', 'Map button opens #map under How it works', ap.url());
+    const mapData = await ap.evaluate(() => WPSystemMap._data);
+    const ids = mapData.NODES.map((n) => n.id);
+    ok(mapData.EDGES.every((e) => ids.includes(e[0]) && ids.includes(e[1])) && mapData.JOURNEYS.every((j) => j.steps.every((s) => ids.includes(s[0]))), 'every connection and journey step points at a real card');
+    ok((await ap.locator('.smap-node').count()) === ids.length && (await ap.locator('.smap-edge').count()) === mapData.EDGES.length, 'all cards and connectors drawn');
+    await ap.click('.smap-node[data-id="tools"]');
+    ok(/Backend Tools/.test(await ap.textContent('.smap-detail h2')) && (await ap.locator('.smap-edge.on').count()) > 0, 'clicking a card opens its detail and highlights its connections');
+    await ap.click('.smap-detail [data-go="early"]');
+    ok(/Instant Lead/.test(await ap.textContent('.smap-detail h2')), 'detail links jump to connected cards');
+    await ap.keyboard.press('Escape'); ok(await ap.locator('.smap-detail').isHidden(), 'Esc closes the detail panel');
+    await ap.click('[data-j="book"]');
+    ok((await ap.locator('#smapSteps li').count()) === mapData.JOURNEYS.find((j) => j.k === 'book').steps.length && (await ap.locator('.smap-node.numbered').count()) > 0, 'journey lists its steps and numbers the cards');
+    await ap.goto(BASE + '/admin#faq'); ok(await ap.locator('.smap-detail').isHidden(), 'leaving the map closes its panel');
     for (const t of ['demo', 'faq', 'conversations']) { await ap.goto(BASE + '/admin#' + t); await ap.waitForTimeout(300); }
     ok(await ap.locator('#cvSignin').isVisible() && !(await ap.locator('#cvActions').isVisible()), 'conversations asks for Google sign-in when signed out');
     ok(aerr.length === 0, 'admin has no page errors', aerr.join('; '));
