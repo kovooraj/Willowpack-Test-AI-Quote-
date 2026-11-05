@@ -170,8 +170,10 @@ document.documentElement.setAttribute('data-theme',t)})();
 
     <!-- ================= FAQ ================= -->
     <section class="tab narrow" id="tab-faq" data-title="Install · How it works" hidden>
-      <h1>How it works</h1>
-      <p class="sub">What visitors see, what gets tracked, and what to check when something looks off.</p>
+      <div class="demo-head">
+        <div><h1>How it works</h1><p class="sub">What visitors see, what gets tracked, and what to check when something looks off.</p></div>
+        <a class="btn btn-primary map-btn" href="#map"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2z"/><path d="M9 4v14M15 6v14"/></svg>Map</a>
+      </div>
       <div class="flow">
         <div><b>1</b><h3>Inline box</h3><p>Sits in your page. Visitor types what they’re packaging or taps a format.</p></div>
         <div><b>2</b><h3>Full-screen chat</h3><p>Opens on top of the same page (no new tab). The first message is already sent.</p></div>
@@ -183,10 +185,10 @@ document.documentElement.setAttribute('data-theme',t)})();
           <ul>
             <li><b>Active</b>: the visitor replied in the last 2 hours.</li>
             <li><b>Accepted</b> / <b>Call booked</b>: they accepted a quote or booked a call. The Account, Contact and Opportunity are created in Salesforce.</li>
-            <li><b>Abandoned</b>: no reply for 2+ hours, but we have their name, company and email. A Salesforce <b>Lead</b> is created so a rep can follow up.</li>
+            <li><b>Abandoned</b>: no reply for 2+ hours, but we have their name, company and email. Their Salesforce <b>Lead</b> already exists (it’s created and tiered seconds after they give those details) and they get the follow-up email an hour later.</li>
             <li><b>Bounced</b>: no reply for 2+ hours and no contact details. Nothing is sent to Salesforce.</li>
           </ul>
-          <p>Conversations shows the Salesforce Account (with its AI tier), the Lead, and the AI chat Quotes as links once they exist. They are refreshed every 15 minutes.</p></details>
+          <p>Conversations shows the Salesforce Account (with its AI tier), the Lead, and the AI chat Quotes as links once they exist. They are refreshed every 2 minutes. See the <a href="#map">system map</a> for how every piece connects.</p></details>
         <details><summary>What gets sent to Salesforce?</summary>
           <p>Every chat records the <b>landing page URL</b> the visitor was on (not our chat URL) plus <b>UTM Source, Medium and Campaign</b>. UTMs come from the landing page’s own URL (e.g. from your ads). If the URL has no <code>utm_campaign</code>, the box’s <b>Campaign tag</b> is used. These are saved on the first message of a chat and pushed to Salesforce with the lead.</p></details>
         <details><summary>Why can’t a customer see quotes they started on willowpack.com?</summary>
@@ -210,6 +212,14 @@ document.documentElement.setAttribute('data-theme',t)})();
             <li><b>Still stuck?</b> Open the page with <code>?wp_debug=1</code> and check the browser console for <code>[willowpack]</code> lines.</li>
           </ul></details>
       </div>
+    </section>
+
+    <!-- ================= System map ================= -->
+    <section class="tab wide" id="tab-map" data-title="How it works · System map" hidden>
+      <a class="back-link" href="#faq">← How it works</a>
+      <h1>System map</h1>
+      <p class="sub">How the AI quote chat works end to end: the website, the live conversation, the automations behind it, and every system they touch.</p>
+      <div id="smap" class="smap"></div>
     </section>
 
     <!-- ================= Conversations ================= -->
@@ -246,6 +256,7 @@ document.documentElement.setAttribute('data-theme',t)})();
     </section>
   </main>
 </div>
+<script src="/assets/system-map.js?v=1"></script>
 <script src="/assets/admin.js"></script>
 <script src="/embed.js?v=1.0.2" async></script>
 </body>
