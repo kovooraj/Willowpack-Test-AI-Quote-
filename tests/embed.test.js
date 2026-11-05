@@ -236,6 +236,17 @@ const overlayShown = (page) => page.evaluate(() => { const h = document.querySel
     await ap.click('[data-j="book"]');
     ok((await ap.locator('#smapSteps li').count()) === mapData.JOURNEYS.find((j) => j.k === 'book').steps.length && (await ap.locator('.smap-node.numbered').count()) > 0, 'journey lists its steps and numbers the cards');
     await ap.goto(BASE + '/admin#faq'); ok(await ap.locator('.smap-detail').isHidden(), 'leaving the map closes its panel');
+
+    /* system switcher next to the logo: Sales AI live, others coming soon */
+    const sysBtn = ap.locator('.side .sys-btn');
+    ok(/Sales AI/.test(await sysBtn.textContent()), 'switcher shows Sales AI next to the logo');
+    await sysBtn.click();
+    const sysItems = await ap.locator('.side .sys-item').allTextContents();
+    ok(sysItems.length === 3 && /Customer Assistance AI.*Coming soon/.test(sysItems[1]) && /Outbound Lead AI.*Coming soon/.test(sysItems[2]), 'switcher lists the coming-soon systems', JSON.stringify(sysItems));
+    ok((await ap.locator('.side .sys-item[aria-checked="true"]').textContent()).includes('Sales AI') && (await ap.locator('.side .sys-item.soon[aria-disabled="true"]').count()) === 2, 'Sales AI selected, coming-soon systems not selectable');
+    await ap.locator('.side .sys-item.soon').first().click({ force: true });
+    ok(await ap.locator('.side .sys-menu').isVisible() && /#faq$/.test(ap.url()), 'clicking a coming-soon system goes nowhere');
+    await ap.keyboard.press('Escape'); ok(await ap.locator('.side .sys-menu').isHidden(), 'Esc closes the switcher');
     for (const t of ['demo', 'faq', 'conversations']) { await ap.goto(BASE + '/admin#' + t); await ap.waitForTimeout(300); }
     ok(await ap.locator('#cvSignin').isVisible() && !(await ap.locator('#cvActions').isVisible()), 'conversations asks for Google sign-in when signed out');
     ok(aerr.length === 0, 'admin has no page errors', aerr.join('; '));

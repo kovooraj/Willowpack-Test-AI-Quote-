@@ -26,14 +26,26 @@ document.documentElement.setAttribute('data-theme',t)})();
     </button>
     <img class="logo logo-light" src="/assets/logo.png" width="111" height="24" alt="Willowpack">
     <img class="logo logo-dark" src="/assets/logo-white.png" width="111" height="24" alt="Willowpack">
+    <span class="sys-sep" aria-hidden="true"></span>
+    <div class="sys">
+      <button class="sys-btn" type="button" aria-haspopup="menu" aria-expanded="false" aria-label="Switch system. Current: Sales AI">Sales AI<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button>
+      <div class="sys-menu" role="menu" aria-label="Willowpack AI systems" hidden></div>
+    </div>
     <span class="spacer"></span>
     <span class="crumb" id="crumb">Demo</span>
   </header>
 
   <aside class="side" id="side" aria-label="Admin navigation">
     <div class="side-head">
-      <img class="logo logo-light" src="/assets/logo.png" width="120" height="26" alt="Willowpack">
-      <img class="logo logo-dark" src="/assets/logo-white.png" width="120" height="26" alt="Willowpack">
+      <div class="brand-row">
+        <img class="logo logo-light" src="/assets/logo.png" width="120" height="26" alt="Willowpack">
+        <img class="logo logo-dark" src="/assets/logo-white.png" width="120" height="26" alt="Willowpack">
+        <span class="sys-sep" aria-hidden="true"></span>
+        <div class="sys">
+          <button class="sys-btn" type="button" aria-haspopup="menu" aria-expanded="false" aria-label="Switch system. Current: Sales AI">Sales AI<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button>
+          <div class="sys-menu" role="menu" aria-label="Willowpack AI systems" hidden></div>
+        </div>
+      </div>
       <span class="badge">Quote chat admin</span>
     </div>
     <nav class="side-nav">

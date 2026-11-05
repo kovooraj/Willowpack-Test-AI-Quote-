@@ -15,6 +15,41 @@
     try { localStorage.setItem('wp_theme', t); } catch (e) {}
   });
 
+  /* ---------- system switcher: Sales AI is live, the others are coming soon ---------- */
+  var SYSTEMS = [
+    { name: 'Sales AI', note: 'AI quote chat · live', live: true, icon: '<path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/>' },
+    { name: 'Customer Assistance AI', note: 'Support for existing customers', icon: '<path d="M4 14v-2a8 8 0 0 1 16 0v2"/><rect x="2.5" y="13" width="4" height="6" rx="1.5"/><rect x="17.5" y="13" width="4" height="6" rx="1.5"/>' },
+    { name: 'Outbound Lead AI', note: 'Prospecting & outreach', icon: '<path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4z"/>' }
+  ];
+  $$('.sys').forEach(function (box) {
+    var btn = $('.sys-btn', box), menu = $('.sys-menu', box);
+    menu.innerHTML = '<div class="sys-menu-h">Switch system</div>' + SYSTEMS.map(function (s) {
+      return '<button class="sys-item' + (s.live ? ' on' : ' soon') + '" type="button" role="menuitemradio" aria-checked="' + (s.live ? 'true' : 'false') + '"' + (s.live ? '' : ' aria-disabled="true"') + '>' +
+        '<span class="sys-ic" aria-hidden="true"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + s.icon + '</svg></span>' +
+        '<span class="sys-tx"><b>' + esc(s.name) + '</b><small>' + esc(s.note) + '</small></span>' +
+        (s.live ? '<svg class="sys-check" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12 5 5 9-10"/></svg>' : '<span class="sys-soon">Coming soon</span>') + '</button>';
+    }).join('');
+    var items = $$('.sys-item', menu);
+    function open(v, focus) { menu.hidden = !v; btn.setAttribute('aria-expanded', v ? 'true' : 'false'); if (v && focus) items[0].focus(); }
+    btn.addEventListener('click', function (e) { e.stopPropagation(); open(menu.hidden, false); });
+    btn.addEventListener('keydown', function (e) { if (e.key === 'ArrowDown') { e.preventDefault(); open(true, true); } });
+    menu.addEventListener('click', function (e) {
+      e.stopPropagation();
+      var it = e.target.closest('.sys-item');
+      if (!it || it.getAttribute('aria-disabled') === 'true') return; /* coming soon: nothing to switch to yet */
+      open(false); btn.focus();
+    });
+    menu.addEventListener('keydown', function (e) {
+      var i = items.indexOf(document.activeElement);
+      if (e.key === 'ArrowDown') { e.preventDefault(); items[(i + 1) % items.length].focus(); }
+      else if (e.key === 'ArrowUp') { e.preventDefault(); items[(i - 1 + items.length) % items.length].focus(); }
+      else if (e.key === 'Escape') { open(false); btn.focus(); }
+      else if (e.key === 'Tab') open(false);
+    });
+    document.addEventListener('click', function () { if (!menu.hidden) open(false); });
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !menu.hidden) { open(false); btn.focus(); } });
+  });
+
   /* ---------- routing + mobile drawer ---------- */
   var TABS = ['demo', 'chat-box', 'quotes-button', 'faq', 'map', 'conversations'];
   var side = $('#side'), scrim = $('#scrim'), menuBtn = $('#menuBtn');
