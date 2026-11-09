@@ -224,18 +224,39 @@ const overlayShown = (page) => page.evaluate(() => { const h = document.querySel
     /* system map: Map button on How it works, cards + connectors, detail panel, journeys */
     await ap.goto(BASE + '/admin#faq'); await ap.click('.map-btn'); await ap.waitForSelector('#smap .smap-node');
     ok(/#map$/.test(ap.url()) && (await ap.getAttribute('.side-nav a[aria-current]', 'data-tab')) === 'faq', 'Map button opens #map under How it works', ap.url());
-    const mapData = await ap.evaluate(() => WPSystemMap._data);
-    const ids = mapData.NODES.map((n) => n.id);
-    ok(mapData.EDGES.every((e) => ids.includes(e[0]) && ids.includes(e[1])) && mapData.JOURNEYS.every((j) => j.steps.every((s) => ids.includes(s[0]))), 'every connection and journey step points at a real card');
-    ok((await ap.locator('.smap-node').count()) === ids.length && (await ap.locator('.smap-edge').count()) === mapData.EDGES.length, 'all cards and connectors drawn');
-    await ap.click('.smap-node[data-id="tools"]');
-    ok(/Backend Tools/.test(await ap.textContent('.smap-detail h2')) && (await ap.locator('.smap-edge.on').count()) > 0, 'clicking a card opens its detail and highlights its connections');
-    await ap.click('.smap-detail [data-go="early"]');
-    ok(/Instant Lead/.test(await ap.textContent('.smap-detail h2')), 'detail links jump to connected cards');
-    await ap.keyboard.press('Escape'); ok(await ap.locator('.smap-detail').isHidden(), 'Esc closes the detail panel');
-    await ap.click('[data-j="book"]');
-    ok((await ap.locator('#smapSteps li').count()) === mapData.JOURNEYS.find((j) => j.k === 'book').steps.length && (await ap.locator('.smap-node.numbered').count()) > 0, 'journey lists its steps and numbers the cards');
-    await ap.goto(BASE + '/admin#faq'); ok(await ap.locator('.smap-detail').isHidden(), 'leaving the map closes its panel');
+    const SYS = '.smap-detail[data-map="system"]', FLOW = '.smap-detail[data-map="flow"]';
+    for (const key of ['system', 'flow']) {
+      const d = await ap.evaluate((k) => WPMap.data(k), key);
+      const ids = d.NODES.map((n) => n.id);
+      ok(d.EDGES.every((e) => ids.includes(e[0]) && ids.includes(e[1])) && d.JOURNEYS.every((j) => j.steps.every((s) => ids.includes(s[0]))) && new Set(ids).size === ids.length, key + ': every connection and journey step points at a real, unique card');
+      ok(d.NODES.every((n) => !n.status || ['live', 'stage', 'soon'].includes(n.status)) && d.NODES.every((n) => d.LANES.some((l) => l.k === n.lane)), key + ': every card has a known status and lane');
+    }
+    const mapData = await ap.evaluate(() => WPMap.data('system'));
+    ok((await ap.locator('#smap .smap-node').count()) === mapData.NODES.length && (await ap.locator('#smap .smap-edge').count()) === mapData.EDGES.length, 'all cards and connectors drawn');
+    ok((await ap.locator('#smap .smap-node[data-id="portalq"] .smap-status[data-status="stage"]').count()) === 1, 'Portal Quote card is marked Testing');
+    await ap.click('#smap .smap-node[data-id="tools"]');
+    ok(/Backend Tools/.test(await ap.textContent(SYS + ' h2')) && (await ap.locator('#smap .smap-edge.on').count()) > 0, 'clicking a card opens its detail and highlights its connections');
+    await ap.click(SYS + ' [data-go="early"]');
+    ok(/Instant Lead/.test(await ap.textContent(SYS + ' h2')), 'detail links jump to connected cards');
+    await ap.keyboard.press('Escape'); ok(await ap.locator(SYS).isHidden(), 'Esc closes the detail panel');
+    await ap.click('#smap [data-j="book"]');
+    ok((await ap.locator('#smap .smap-steps li').count()) === mapData.JOURNEYS.find((j) => j.k === 'book').steps.length && (await ap.locator('#smap .smap-node.numbered').count()) > 0, 'journey lists its steps and numbers the cards');
+
+    /* customer flow: button next to Map, the chatter's journey, switch between the two diagrams */
+    await ap.goto(BASE + '/admin#faq'); ok(await ap.locator(SYS).isHidden(), 'leaving the map closes its panel');
+    await ap.click('.flow-btn'); await ap.waitForSelector('#cflow .smap-node');
+    const flowData = await ap.evaluate(() => WPMap.data('flow'));
+    ok(/#flow$/.test(ap.url()) && (await ap.getAttribute('.side-nav a[aria-current]', 'data-tab')) === 'faq' && (await ap.locator('#cflow .smap-node').count()) === flowData.NODES.length, 'Customer flow button opens #flow with every step drawn', ap.url());
+    await ap.click('#cflow .smap-node[data-id="portal"]');
+    const fd = await ap.textContent(FLOW);
+    ok(/Gets the Portal quote/.test(fd) && /What the customer sees/.test(fd) && /Behind the scenes/.test(fd) && /Testing/.test(fd), 'flow step shows what the customer sees, behind the scenes and its status');
+    await ap.keyboard.press('Escape');
+    await ap.click('#cflow [data-j="yes"]');
+    ok((await ap.locator('#cflow .smap-steps li button').count()) === flowData.JOURNEYS.find((j) => j.k === 'yes').steps.length, 'customer path lists its steps');
+    await ap.click('#tab-flow .view-switch a[href="#map"]');
+    await ap.waitForSelector('#tab-map:not([hidden])', { timeout: 5000 }).catch(() => {});
+    ok(/#map$/.test(ap.url()) && await ap.locator('#tab-map').isVisible() && await ap.locator(FLOW).isHidden(), 'switch goes from the flow to the system map');
+    await ap.goto(BASE + '/admin#faq');
 
     /* system switcher next to the logo: Sales AI live, others coming soon */
     const sysBtn = ap.locator('.side .sys-btn');

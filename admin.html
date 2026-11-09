@@ -184,7 +184,10 @@ document.documentElement.setAttribute('data-theme',t)})();
     <section class="tab narrow" id="tab-faq" data-title="Install · How it works" hidden>
       <div class="demo-head">
         <div><h1>How it works</h1><p class="sub">What visitors see, what gets tracked, and what to check when something looks off.</p></div>
-        <a class="btn btn-primary map-btn" href="#map"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2z"/><path d="M9 4v14M15 6v14"/></svg>Map</a>
+        <div class="head-btns">
+          <a class="btn btn-ghost flow-btn" href="#flow"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="5" cy="6" r="2"/><circle cx="19" cy="18" r="2"/><path d="M7 6h6a4 4 0 0 1 4 4v6"/><path d="M14 13l3 3 3-3"/></svg>Customer flow</a>
+          <a class="btn btn-primary map-btn" href="#map"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2z"/><path d="M9 4v14M15 6v14"/></svg>Map</a>
+        </div>
       </div>
       <div class="flow">
         <div><b>1</b><h3>Inline box</h3><p>Sits in your page. Visitor types what they’re packaging or taps a format.</p></div>
@@ -193,14 +196,33 @@ document.documentElement.setAttribute('data-theme',t)})();
         <div><b>4</b><h3>Email links</h3><p>Quote emails link to your landing page with <code>?resume=</code>, which reopens that chat automatically.</p></div>
       </div>
       <div class="faq">
-        <details open><summary>What do Active, Abandoned and Bounced mean?</summary>
+        <details open><summary>How does a chat go from “hello” to an order?</summary>
+          <ol>
+            <li><b>Who are you?</b> Before any price, the assistant collects full name, company and business email. No details, no quote: the chat is only logged.</li>
+            <li><b>Salesforce check, in parallel.</b> Within seconds the system looks the customer up (new vs existing is decided by Salesforce, not by what they say). New customers get a Willowpack Lead, tiered A/B/S/C with an owner in about 20 to 30 seconds.</li>
+            <li><b>The quote.</b> Spec questions, then the live price from the Pricing Engine (the only source of prices).</li>
+            <li><b>Approved?</b> Yes → Account + Contact (if new) and an Opportunity, then a <b>Willowpack Portal quote</b> linked to that Opportunity is emailed with a Portal login. No → the one-time 5% discount (if margin allows) → still no → a call with their rep, which hands the chat to the rep.</li>
+            <li><b>2 days later.</b> If the Portal quote isn’t ordered yet, the rep gets a Salesforce call task.</li>
+          </ol>
+          <p>Open the <a href="#flow">Customer flow</a> to click through every step, or the <a href="#map">System map</a> for how the systems connect.</p>
+          <p class="note"><b>Rolling out:</b> the Portal quote is live for <code>@sinalite.com</code> / <code>@willowpack.com</code> test emails only (stage Portal); real customers keep the Salesforce Quote until go-live. The discount-then-call flow, the Bounced email and the 2-day check are being built.</p></details>
+        <details><summary>What do the chat outcomes mean?</summary>
           <ul>
             <li><b>Active</b>: the visitor replied in the last 2 hours.</li>
-            <li><b>Accepted</b> / <b>Call booked</b>: they accepted a quote or booked a call. The Account, Contact and Opportunity are created in Salesforce.</li>
-            <li><b>Abandoned</b>: no reply for 2+ hours, but we have their name, company and email. Their Salesforce <b>Lead</b> already exists (it’s created and tiered seconds after they give those details) and they get the follow-up email an hour later.</li>
-            <li><b>Bounced</b>: no reply for 2+ hours and no contact details. Nothing is sent to Salesforce.</li>
+            <li><b>Accepted</b>: they approved a price. Account, Contact and Opportunity are in Salesforce and the Portal quote is sent.</li>
+            <li><b>Call booked</b>: they booked a call with their rep; the rep takes it from there.</li>
+            <li><b>Abandoned</b>: no reply for 2+ hours after giving name, company and email, before getting a price. Their Lead exists and they get a “Continue my quote” email an hour later.</li>
+            <li><b>Bounced + Lead</b> <i>(rolling out)</i>: they got a price and left without approving. Their Lead exists and they get a “negotiate or connect with Sales” email an hour later.</li>
+            <li><b>Anonymous</b> <i>(rolling out; shown as Bounced today)</i>: no reply for 2+ hours and no contact details. Logged only; nothing goes to Salesforce.</li>
           </ul>
-          <p>Conversations shows the Salesforce Account (with its AI tier), the Lead, and the AI chat Quotes as links once they exist. They are refreshed every 2 minutes. See the <a href="#map">system map</a> for how every piece connects.</p></details>
+          <p>Conversations shows the Salesforce Account (with its AI tier), the Lead and Opportunity as links once they exist, refreshed every 2 minutes.</p></details>
+        <details><summary>What happens when a customer approves a quote?</summary>
+          <ul>
+            <li>Salesforce: a new customer’s Lead becomes an Account + Contact (the Lead is retired); everyone gets an Opportunity owned by their tier’s rep.</li>
+            <li>Willowpack Portal: the customer’s company is found by Salesforce Account, exact email or email domain (never by name), or created (CA or US region from where they are, Credit Card terms, their rep). Anything ambiguous is created new and flagged to the rep.</li>
+            <li>The Portal quote carries the chat price (or the discounted price), the specs and the link to the Salesforce Opportunity, and is emailed with a set-password invite for new customers.</li>
+            <li>The rep gets the hand-off email with an <b>Open Portal quote</b> button, or a red <b>[ACTION NEEDED]</b> alert if something needs a human.</li>
+          </ul></details>
         <details><summary>What gets sent to Salesforce?</summary>
           <p>Every chat records the <b>landing page URL</b> the visitor was on (not our chat URL) plus <b>UTM Source, Medium and Campaign</b>. UTMs come from the landing page’s own URL (e.g. from your ads). If the URL has no <code>utm_campaign</code>, the box’s <b>Campaign tag</b> is used. These are saved on the first message of a chat and pushed to Salesforce with the lead.</p></details>
         <details><summary>Why can’t a customer see quotes they started on willowpack.com?</summary>
@@ -229,9 +251,21 @@ document.documentElement.setAttribute('data-theme',t)})();
     <!-- ================= System map ================= -->
     <section class="tab wide" id="tab-map" data-title="How it works · System map" hidden>
       <a class="back-link" href="#faq">← How it works</a>
-      <h1>System map</h1>
-      <p class="sub">How the AI quote chat works end to end: the website, the live conversation, the automations behind it, and every system they touch.</p>
+      <div class="demo-head">
+        <div><h1>System map</h1><p class="sub">How the AI quote chat works end to end: the website, the live conversation, the automations behind it, and every system they touch.</p></div>
+        <nav class="seg view-switch" aria-label="Diagram"><a href="#map" class="on" aria-current="page">System map</a><a href="#flow">Customer flow</a></nav>
+      </div>
       <div id="smap" class="smap"></div>
+    </section>
+
+    <!-- ================= Customer flow ================= -->
+    <section class="tab wide" id="tab-flow" data-title="How it works · Customer flow" hidden>
+      <a class="back-link" href="#faq">← How it works</a>
+      <div class="demo-head">
+        <div><h1>Customer flow</h1><p class="sub">The chatter’s journey, from the ad click to an order or a call with their rep: what they see at each step and what happens behind the scenes.</p></div>
+        <nav class="seg view-switch" aria-label="Diagram"><a href="#map">System map</a><a href="#flow" class="on" aria-current="page">Customer flow</a></nav>
+      </div>
+      <div id="cflow" class="smap"></div>
     </section>
 
     <!-- ================= Conversations ================= -->
@@ -268,7 +302,9 @@ document.documentElement.setAttribute('data-theme',t)})();
     </section>
   </main>
 </div>
-<script src="/assets/system-map.js?v=1"></script>
+<script src="/assets/map-core.js?v=2"></script>
+<script src="/assets/system-map.js?v=2"></script>
+<script src="/assets/customer-flow.js?v=2"></script>
 <script src="/assets/admin.js"></script>
 <script src="/embed.js?v=1.0.2" async></script>
 </body>
