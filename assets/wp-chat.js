@@ -13,7 +13,7 @@
   var WEBHOOK_URL = 'https://n8n.sinaprinting.com/webhook/willowpack-quote-chat';
   var HISTORY_URL = 'https://n8n.sinaprinting.com/webhook/willowpack-quote-history';
   var CALL_URL = 'https://n8n.sinaprinting.com/webhook/willowpack-call-request';
-  var MARK = '/assets/mark.png';
+  var MARK = '/assets/riley.jpg'; /* Riley, the AI quote specialist's avatar */
   var BOOK_MSG = 'I’d like to book a call with a Willowpack rep to finalize this quote.';
   /* Follow-up email "Approve my quote" links (&ask=approve): reopen the chat and ask to review the quote; the customer still confirms in the chat */
   var APPROVE_MSG = 'I’m back to review my quote and approve it.';
@@ -180,9 +180,9 @@
 '    <p class="msg" id="cmMsg" aria-live="polite"></p>' +
 '  </form>' +
 '</div>' +
-'<div class="chat open" id="chat" role="dialog" aria-label="Willowpack quote assistant">' +
+'<div class="chat open" id="chat" role="dialog" aria-label="Riley, Willowpack AI quote specialist">' +
 '  <div class="chat-bar">' + LOGOS +
-'    <span class="who"><span class="dot"></span>Quote assistant</span>' +
+'    <span class="who"><img class="who-av" src="/assets/riley.jpg" alt="" width="24" height="24"><span><b>Riley</b> · AI quote specialist</span><span class="dot" title="Online"></span></span>' +
 '    <span class="spacer"></span>' +
 '    <button class="btn btn-ghost" type="button" id="callBtn" aria-label="Continue via call">' + ICON.phone + '<span class="ghost-label">Call me</span></button>' +
 '    <button class="btn btn-ghost" type="button" id="historyBtn" aria-label="Past quotes">' + ICON.clock + '<span class="ghost-label">Past quotes</span></button>' +
@@ -320,7 +320,7 @@
     }
     function greet() {
       started = true;
-      addBot('Hi, I’m the Willowpack quote assistant. What are you packaging, and do you already know the format you want?', ['Stand-up pouches', 'Roll labels', 'Product boxes', 'Roll stock', 'Not sure yet']);
+      addBot('Hi, I’m Riley, Willowpack’s AI quote specialist. What are you packaging, and do you already know the format you want?', ['Stand-up pouches', 'Roll labels', 'Product boxes', 'Roll stock', 'Not sure yet']);
     }
     function scrollEnd() { requestAnimationFrame(function () { thread.scrollTop = thread.scrollHeight; }); }
     function row(cls) { var r = document.createElement('div'); r.className = 'msg ' + cls; inner.appendChild(r); return r; }

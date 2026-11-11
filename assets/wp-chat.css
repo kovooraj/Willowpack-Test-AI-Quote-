@@ -89,6 +89,7 @@ a{color:inherit}
 .chat-bar{display:flex;align-items:center;gap:14px;padding:12px 20px;border-bottom:1px solid var(--line);background:var(--bg)}
 .chat-bar .logo{height:24px}
 .who{display:flex;align-items:center;gap:8px;font-size:14px;color:var(--muted);padding-left:14px;border-left:1px solid var(--line)}
+.who b{color:var(--text);font-weight:600}.who-av{width:24px;height:24px;border-radius:50%;flex:none}
 .dot{width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 0 0 rgba(31,159,113,.6);animation:pulse 2.4s infinite}
 @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(31,159,113,.5)}70%{box-shadow:0 0 0 8px rgba(31,159,113,0)}100%{box-shadow:0 0 0 0 rgba(31,159,113,0)}}
 .chat-bar .spacer{flex:1}
