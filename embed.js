@@ -297,9 +297,10 @@
     /* Customer email links land on <landing page>?resume=<session_id> */
     var r = ''; try { r = new URL(location.href).searchParams.get('resume') || ''; } catch (e) {}
     if (/^[A-Za-z0-9-]{8,64}$/.test(r)) {
-      var askBook = false; try { askBook = new URL(location.href).searchParams.get('ask') === 'book'; } catch (e) {}
+      var ask = ''; try { ask = new URL(location.href).searchParams.get('ask') || ''; } catch (e) {}
+      if (ask !== 'book' && ask !== 'approve') ask = '';
       try { var u = new URL(location.href); u.searchParams.delete('resume'); u.searchParams.delete('ask'); history.replaceState(history.state, '', u.pathname + u.search + u.hash); } catch (e) {}
-      openChat({ resume: r, ask: askBook ? 'book' : '' });
+      openChat({ resume: r, ask: ask });
     }
   }
 

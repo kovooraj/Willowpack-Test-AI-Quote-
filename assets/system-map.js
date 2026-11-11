@@ -13,7 +13,7 @@
     /* ---------------- Website ---------------- */
     { id: 'lp', lane: 'fe', col: 1, kind: 'Vercel', title: 'Landing page + embed', sub: 'embed.js · inline box & quotes button',
       what: 'Any page (willowpack.com, Unbounce) adds one script, /embed.js. It draws the inline chat box and the Previous quotes button in an isolated layer (Shadow DOM), so page styles can’t break it and it can’t break the page. Clicking opens the chat full-screen on top of the same page.',
-      when: ['On page load.', 'A link with <code>?resume=&lt;chat id&gt;</code> reopens that chat automatically.', '<code>&amp;ask=book</code> also sends “I’d like to book a call” for the customer.'],
+      when: ['On page load.', 'A link with <code>?resume=&lt;chat id&gt;</code> reopens that chat automatically.', '<code>&amp;ask=approve</code> (follow-up “Approve my quote”) sends “I’m back to review my quote and approve it.”; <code>&amp;ask=book</code> sends “I’d like to book a call”.'],
       logic: ['Sends the landing page URL (not our chat URL), UTM tags and the box’s Campaign tag with every chat.', 'Only one global: <code>window.WillowpackChat</code> with <code>open()</code>, <code>openQuotes()</code>, <code>close()</code>.', 'Closing the chat leaves a “Continue my quote” pill on the page.'],
       where: ['Repo <code>kovooraj/Willowpack-Test-AI-Quote-</code> → <code>embed.js</code> (also pinned at <code>/embed/v1.js</code>)', 'Vercel project <code>willowpack_test_ai_quote</code>'],
       check: ['Nothing shows: the script must be on the page and the page re-published. Unbounce’s editor doesn’t run scripts; use Preview.', 'Add <code>?wp_debug=1</code> to the page URL and look for <code>[willowpack]</code> lines in the console.'] },
@@ -106,10 +106,10 @@
       logic: ['Matches Leads and Contacts by email (Willowpack only).', 'Saves the links for Conversations (Supabase) and the status, tier and rep for the chat (Sessions sheet), so rep-side changes reach the chat.', 'Once an approved customer’s Account exists, the chat’s own Lead is deleted (Salesforce can’t merge a Lead into an existing Account).'],
       where: ['n8n “Willowpack AI Quote Chat - Salesforce Links for Conversations”'],
       check: ['A rep change isn’t showing: give it 2 minutes; the chat and Conversations update on the next run.'] },
-    { id: 'followup', lane: 'bg', col: 7, kind: 'n8n', title: 'Follow-up emails', sub: '1 hour after the customer goes quiet', wf: 'eS0G6h2IqwHwDXPS',
-      what: 'Emails customers who left with their details given, inviting them back to the same chat or to talk to Sales.',
-      when: ['Every 15 minutes; a chat qualifies 1 hour after it goes quiet (3 hours with no reply), within 7 days, once only.'],
-      logic: ['<b>Left before a price:</b> “Continue my quote” (live).', '<b>Got a price, didn’t approve, or abandoned booking:</b> <i>Building:</i> a “negotiate further or connect with Sales for a better quote” email; after it, the chat stops selling and the rep owns the next step.',
+    { id: 'followup', lane: 'bg', col: 7, kind: 'n8n', title: 'Follow-up emails', sub: '10 min after the customer goes quiet, then one more', wf: 'eS0G6h2IqwHwDXPS',
+      what: 'Re-engages customers who left with their details given: up to two emails, each bringing them back to the same chat.',
+      when: ['Runs every 5 minutes. <b>Email 1:</b> 10 minutes after the chat goes quiet (within 7 days).', '<b>Email 2:</b> if they came back after email 1 and left again without approving, 10 minutes after they go quiet; if they never came back, 24 hours after email 1. Never more than two.', 'Stops as soon as the quote is approved or a call is booked.'],
+      logic: ['<b>Left before a price:</b> “Continue my quote”.', '<b>Got a price, didn’t approve:</b> “Review &amp; approve my quote” with the price; the link adds <code>&amp;ask=approve</code>, so the chat reopens and asks to review the quote (the customer still confirms).', '<b>Email 2</b> uses the same two versions, worded for “you came back” or a 24-hour reminder, and says it is the last reminder.',
         'Skips test chats, disqualified or converted Leads, and chats already handed to sales. At most 20 per run.', 'Sent as Willowpack from feedback@willowpack, replies go to the Salesforce owner, and a completed Task is logged on the Lead.'],
       where: ['n8n “Abandoned Follow-up Email”'],
       check: ['Customer didn’t get it: check the chat’s outcome in Conversations and the workflow’s last executions.'] },
@@ -205,10 +205,10 @@
     { k: 'abandoned', name: 'Customer leaves', steps: [
       ['sheet', 'No reply for 2 hours. No details given: logged only (Anonymous). Details given: the Lead already exists.'],
       ['convsync', 'The chat is already in the Conversations database.'],
-      ['supabase', 'One hour later it’s due for a follow-up.'],
-      ['followup', 'Left before a price: “Continue my quote”. Got a price: “negotiate or connect with Sales” (building).'],
+      ['supabase', '10 minutes later it’s due for a follow-up.'],
+      ['followup', 'Left before a price: “Continue my quote”. Got a price: “Review & approve my quote”. One more email if they come back and leave again, or after 24 hours.'],
       ['gmail', 'The email goes out from Willowpack; replies go to the Lead owner.'],
-      ['lp', '“Continue my quote” reopens the same chat on the landing page.'],
+      ['lp', 'The email button reopens the same chat on the landing page.'],
       ['salesforce', 'A completed Task is logged on the Lead.']] }
   ];
 
