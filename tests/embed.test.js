@@ -233,7 +233,7 @@ const overlayShown = (page) => page.evaluate(() => { const h = document.querySel
     }
     const mapData = await ap.evaluate(() => WPMap.data('system'));
     ok((await ap.locator('#smap .smap-node').count()) === mapData.NODES.length && (await ap.locator('#smap .smap-edge').count()) === mapData.EDGES.length, 'all cards and connectors drawn');
-    ok((await ap.locator('#smap .smap-node[data-id="portalq"] .smap-status[data-status="stage"]').count()) === 1, 'Portal Quote card is marked Testing');
+    ok((await ap.locator('#smap .smap-node[data-id="portalq"] .smap-status').count()) === 0 && (await ap.locator('#smap .smap-legend [data-status="stage"]').count()) === 0, 'Portal Quote card is live (no Testing badge)');
     await ap.click('#smap .smap-node[data-id="tools"]');
     ok(/Backend Tools/.test(await ap.textContent(SYS + ' h2')) && (await ap.locator('#smap .smap-edge.on').count()) > 0, 'clicking a card opens its detail and highlights its connections');
     await ap.click(SYS + ' [data-go="early"]');
@@ -249,7 +249,7 @@ const overlayShown = (page) => page.evaluate(() => { const h = document.querySel
     ok(/#flow$/.test(ap.url()) && (await ap.getAttribute('.side-nav a[aria-current]', 'data-tab')) === 'faq' && (await ap.locator('#cflow .smap-node').count()) === flowData.NODES.length, 'Customer flow button opens #flow with every step drawn', ap.url());
     await ap.click('#cflow .smap-node[data-id="portal"]');
     const fd = await ap.textContent(FLOW);
-    ok(/Gets the Portal quote/.test(fd) && /What the customer sees/.test(fd) && /Behind the scenes/.test(fd) && /Testing/.test(fd), 'flow step shows what the customer sees, behind the scenes and its status');
+    ok(/Gets the Portal quote/.test(fd) && /What the customer sees/.test(fd) && /Behind the scenes/.test(fd) && /Live/.test(fd), 'flow step shows what the customer sees, behind the scenes and its status');
     await ap.keyboard.press('Escape');
     await ap.click('#cflow [data-j="yes"]');
     ok((await ap.locator('#cflow .smap-steps li button').count()) === flowData.JOURNEYS.find((j) => j.k === 'yes').steps.length, 'customer path lists its steps');

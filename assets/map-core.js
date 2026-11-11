@@ -33,8 +33,8 @@
     var html = '<div class="smap-bar" role="toolbar" aria-label="' + esc(cfg.journeyLabel || 'Journeys') + '"><span class="smap-bar-l">' + esc(cfg.journeyLabel || 'Follow a journey') + '</span>' +
       '<button type="button" class="chip on" data-j="">' + esc(cfg.allLabel || 'Everything') + '</button>' +
       cfg.journeys.map(function (j) { return '<button type="button" class="chip" data-j="' + j.k + '">' + esc(j.name) + '</button>'; }).join('') + '</div>' +
-      '<div class="smap-legend" aria-label="Status">' + Object.keys(STATUS).map(function (k) { return '<span class="smap-status" data-status="' + k + '">' + STATUS[k] + '</span>'; }).join('') +
-      '<span class="smap-legend-t">Live = running for every customer · Testing = stage Portal, test emails only · Building = agreed, not running yet</span></div>' +
+      '<div class="smap-legend" aria-label="Status">' + Object.keys(STATUS).filter(function (k) { return k !== 'stage'; }).map(function (k) { return '<span class="smap-status" data-status="' + k + '">' + STATUS[k] + '</span>'; }).join('') +
+      '<span class="smap-legend-t">Live = running for every customer · Building = agreed, not running yet</span></div>' +
       '<ol class="smap-steps" hidden></ol>' +
       '<div class="smap-scroll"><div class="smap-canvas" style="--cols:' + this.cols + ';min-width:' + (190 + this.cols * 168) + 'px">' +
       '<svg class="smap-svg" aria-hidden="true"><defs><marker id="smapArrow-' + this.key + '" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z"/></marker></defs></svg>' +

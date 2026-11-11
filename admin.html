@@ -205,15 +205,14 @@ document.documentElement.setAttribute('data-theme',t)})();
             <li><b>2 days later.</b> If the Portal quote isn’t ordered yet, the rep gets a Salesforce call task.</li>
           </ol>
           <p>Open the <a href="#flow">Customer flow</a> to click through every step, or the <a href="#map">System map</a> for how the systems connect.</p>
-          <p class="note"><b>Rolling out:</b> the Portal quote is live for <code>@sinalite.com</code> / <code>@willowpack.com</code> test emails only (stage Portal); real customers keep the Salesforce Quote until go-live. The discount-then-call flow, the Bounced email and the 2-day check are being built.</p></details>
+          <p class="note"><b>Live:</b> every approved chat quote becomes a Willowpack Portal quote (portal.willowpack.com) emailed to the customer; no Salesforce Quote is created. Customers who leave get up to two follow-up emails. <b>Still being built:</b> the discount-then-call flow and the 2-day check.</p></details>
         <details><summary>What do the chat outcomes mean?</summary>
           <ul>
             <li><b>Active</b>: the visitor replied in the last 2 hours.</li>
             <li><b>Accepted</b>: they approved a price. Account, Contact and Opportunity are in Salesforce and the Portal quote is sent.</li>
             <li><b>Call booked</b>: they booked a call with their rep; the rep takes it from there.</li>
-            <li><b>Abandoned</b>: no reply for 2+ hours after giving name, company and email, before getting a price. Their Lead exists and they get a “Continue my quote” email an hour later.</li>
-            <li><b>Bounced + Lead</b> <i>(rolling out)</i>: they got a price and left without approving. Their Lead exists and they get a “negotiate or connect with Sales” email an hour later.</li>
-            <li><b>Anonymous</b> <i>(rolling out; shown as Bounced today)</i>: no reply for 2+ hours and no contact details. Logged only; nothing goes to Salesforce.</li>
+            <li><b>Abandoned</b>: no reply for 2+ hours after giving name, company and email, without approving. Their Lead exists. Follow-up emails start 10 minutes after they go quiet: “Continue my quote” if they had no price, “Review &amp; approve my quote” if they did, then one last reminder if they come back and leave again, or after 24 hours.</li>
+                        <li><b>Anonymous</b> <i>(rolling out; shown as Bounced today)</i>: no reply for 2+ hours and no contact details. Logged only; nothing goes to Salesforce.</li>
           </ul>
           <p>Conversations shows the Salesforce Account (with its AI tier), the Lead and Opportunity as links once they exist, refreshed every 2 minutes.</p></details>
         <details><summary>What happens when a customer approves a quote?</summary>

@@ -76,7 +76,7 @@
       what: 'Salesforce gets the deal: new customers get an Account + Contact (their Lead is retired), existing customers just get the Opportunity.',
       sees: ['Nothing; this takes a few seconds.'],
       behind: ['Owner follows the tier (A Daniel, B the rep they booked or the tier owner, S/C Edward).', 'The rep gets a hand-off email with every detail.'] },
-    { id: 'portal', lane: 'close', col: 3, kind: 'Portal', status: 'stage', title: 'Gets the Portal quote', sub: 'email + Portal login',
+    { id: 'portal', lane: 'close', col: 3, kind: 'Portal', title: 'Gets the Portal quote', sub: 'email + Portal login',
       what: 'The quote is created in the Willowpack Portal, linked to the Salesforce Opportunity, and emailed to the customer.',
       sees: ['An email with their quote and a button to review, approve and order it in the Portal.', 'New customers also get a “set your Portal password” invite that lands them on the quote.'],
       behind: ['The Portal company is matched by Salesforce Account, exact email, or email domain (never by name); new customers get one created.', 'Region and currency come from where they are (CA or US).'] },
