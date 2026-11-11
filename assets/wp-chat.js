@@ -15,6 +15,9 @@
   var CALL_URL = 'https://n8n.sinaprinting.com/webhook/willowpack-call-request';
   var MARK = '/assets/mark.png';
   var BOOK_MSG = 'I’d like to book a call with a Willowpack rep to finalize this quote.';
+  /* Follow-up email "Approve my quote" links (&ask=approve): reopen the chat and ask to review the quote; the customer still confirms in the chat */
+  var APPROVE_MSG = 'I’m back to review my quote and approve it.';
+  var ASK_MSG = { book: BOOK_MSG, approve: APPROVE_MSG };
 
   /* Format buttons: same labels and first messages as the home page hero chips. */
   var FORMATS = {
@@ -119,7 +122,7 @@
       resume: validId(q.get('resume')) ? q.get('resume') : '',
       surface: q.get('surface') === 'admin-demo' ? 'admin-demo' : 'embed',
       fresh: q.get('new') === '1',
-      ask: q.get('ask') === 'book' ? 'book' : '',
+      ask: ASK_MSG[q.get('ask')] ? q.get('ask') : '',
       ref: (q.get('ref') || '').slice(0, 500),
       sourceUrl: '', sourceOrigin: '', utm: {}
     };
@@ -300,7 +303,7 @@
 
     var chat = $('#chat'), inner = $('#threadInner'), thread = $('#thread'), input = $('#chatInput'), send = $('#chatSend');
     var busy = false, started = false, stage = 0, engaged = false, bookedNow = false, lastSent = '';
-    var pendingAsk = cfg.ask === 'book' && cfg.resume ? BOOK_MSG : '';
+    var pendingAsk = cfg.ask && cfg.resume ? ASK_MSG[cfg.ask] : '';
     function updateCallBtn() { $('#callBtn').classList.toggle('show', engaged && !bookedNow); }
     function announceSession() { bridge.send('wp:session', { session_id: sessionId }); }
 
@@ -517,7 +520,7 @@
       if (text && !busy && text === lastSent && engaged) { input.focus(); return; }
       start(text); setTimeout(function () { input.focus(); }, 30);
     });
-    bridge.on('wp:resume', function (d) { if (d.ask === 'book') pendingAsk = BOOK_MSG; if (d.fresh) newInquiry(''); else resume(d.resume); setTimeout(function () { input.focus(); }, 30); });
+    bridge.on('wp:resume', function (d) { if (ASK_MSG[d.ask]) pendingAsk = ASK_MSG[d.ask]; if (d.fresh) newInquiry(''); else resume(d.resume); setTimeout(function () { input.focus(); }, 30); });
     bridge.on('wp:focus', function () { input.focus(); });
 
     /* ---------- First run ---------- */
