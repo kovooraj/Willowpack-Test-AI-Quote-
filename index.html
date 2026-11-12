@@ -517,7 +517,7 @@ footer .logo{height:22px;opacity:.85}
         <div class="step"><h3>Tell us what you package</h3><p>Your product, how it’s filled and roughly how many you need.</p></div>
         <div class="step"><h3>Choose the specs</h3><p>Size, material, finish and features, with the common choice suggested.</p></div>
         <div class="step"><h3>See your price</h3><p>Unit price, total and quantity breaks, with a quote reference.</p></div>
-        <div class="step"><h3>Finalize with a rep</h3><p>Book a call and your rep confirms the quote after artwork review.</p></div>
+        <div class="step"><h3>Accept and you’re set</h3><p>Accept the quote in the chat and your rep emails the finalized quote with a link to review and approve.</p></div>
       </div>
     </div>
   </section>
@@ -594,7 +594,7 @@ footer .logo{height:22px;opacity:.85}
   <div class="chat-dock">
     <div class="quote-pill" id="quotePill">
       <div><div class="qi" id="qId">Quote</div><div class="qv" id="qVal"></div></div>
-      <button class="btn btn-primary" type="button" id="bookBtn">Book a call</button>
+      <button class="btn btn-primary" type="button" id="bookBtn">Accept this quote</button>
     </div>
     <form class="composer" id="chatForm" autocomplete="off">
       <label class="sr" for="chatInput">Message</label>
@@ -790,7 +790,12 @@ footer .logo{height:22px;opacity:.85}
     $('#qId').textContent = 'Quote ' + qt.id + (qt.quantity ? ' · ' + Number(qt.quantity).toLocaleString('en-CA') + ' units' : '') + (qt.summary ? ' · ' + qt.summary : '');
     $('#qVal').textContent = money(tot, cur) + (qt.discounted_total != null ? ' (5% chat discount)' : '');
     $('#quotePill').classList.add('show'); setStage(3);
+    if (/^accepted/.test(String(qt.outcome || ''))) { markAccepted(); setStage(4); }
   }
+  /* Quote card button: accepting here hands the quote to sales automatically (Salesforce Account/Opportunity + Portal quote). */
+  function acceptMsg() { var m = (document.getElementById('qId') || {}).textContent; m = m && m.match(/Q-[A-Z0-9]{8}/); return 'I accept ' + (m ? 'quote ' + m[0] : 'this quote') + ' at the price shown. Please go ahead.'; }
+  function markAccepted() { var bb = document.getElementById('bookBtn'); if (!bb) return; bb.classList.add('booked'); bb.disabled = true; bb.textContent = '✓ Quote accepted'; }
+
   function detectQuote(text) {
     var id = text.match(/\bQ-[A-Z0-9]{8}\b/);
     if (!id) return;
@@ -835,7 +840,7 @@ footer .logo{height:22px;opacity:.85}
   }
   function resetThread() {
     inner.innerHTML = ''; stage = 0; setStage(0); $('#quotePill').classList.remove('show');
-    var bb = $('#bookBtn'); bb.classList.remove('booked'); bb.disabled = false; bb.textContent = 'Book a call';
+    var bb = $('#bookBtn'); bb.classList.remove('booked'); bb.disabled = false; bb.textContent = 'Accept this quote';
     engaged = false; bookedNow = false; updateCallBtn();
   }
   function showMeeting(mt) {
@@ -966,7 +971,7 @@ footer .logo{height:22px;opacity:.85}
   document.querySelectorAll('[data-open]').forEach(function (b) { b.addEventListener('click', function () { openChat(b.dataset.open); }); });
   $('#closeChat').addEventListener('click', closeChat);
   $('#resume').addEventListener('click', function () { openChat(); });
-  $('#bookBtn').addEventListener('click', function () { if ($('#bookBtn').classList.contains('booked')) return; ask('I’d like to book a call with a Willowpack rep to finalize this quote.'); });
+  $('#bookBtn').addEventListener('click', function () { if ($('#bookBtn').classList.contains('booked')) return; ask(acceptMsg()); });
   $('#newQuote').addEventListener('click', function () { newInquiry(''); input.focus(); });
   $('#historyBtn').addEventListener('click', function () { chat.classList.contains('show-history') ? closeHistory() : openHistory(); });
   $('#historyClose').addEventListener('click', closeHistory);

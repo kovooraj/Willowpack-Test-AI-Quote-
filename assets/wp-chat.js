@@ -18,6 +18,9 @@
   /* Follow-up email "Approve my quote" links (&ask=approve): reopen the chat and ask to review the quote; the customer still confirms in the chat */
   var APPROVE_MSG = 'I’m back to review my quote and approve it.';
   var ASK_MSG = { book: BOOK_MSG, approve: APPROVE_MSG };
+  /* Quote card button: accepting here hands the quote to sales automatically (Salesforce Account/Opportunity + Portal quote). */
+  function acceptMsg() { var m = (document.getElementById('qId') || {}).textContent; m = m && m.match(/Q-[A-Z0-9]{8}/); return 'I accept ' + (m ? 'quote ' + m[0] : 'this quote') + ' at the price shown. Please go ahead.'; }
+  function markAccepted() { var bb = document.getElementById('bookBtn'); if (!bb) return; bb.classList.add('booked'); bb.disabled = true; bb.textContent = '✓ Quote accepted'; }
 
   /* Format buttons: same labels and first messages as the home page hero chips. */
   var FORMATS = {
@@ -197,7 +200,7 @@
 '    <div id="historyList"></div></div></div>' +
 '  <div class="thread" id="thread" aria-live="polite"><div class="thread-inner" id="threadInner"></div></div>' +
 '  <div class="chat-dock">' +
-'    <div class="quote-pill" id="quotePill"><div><div class="qi" id="qId">Quote</div><div class="qv" id="qVal"></div></div><button class="btn btn-primary" type="button" id="bookBtn">Book a call</button></div>' +
+'    <div class="quote-pill" id="quotePill"><div><div class="qi" id="qId">Quote</div><div class="qv" id="qVal"></div></div><button class="btn btn-primary" type="button" id="bookBtn">Accept this quote</button></div>' +
 '    <form class="composer" id="chatForm" autocomplete="off">' +
 '      <label class="sr" for="chatInput">Message</label>' +
 '      <textarea id="chatInput" rows="1" placeholder="Reply…"></textarea>' +
@@ -357,7 +360,8 @@
       $('#qId').textContent = 'Quote ' + qt.id + (qt.quantity ? ' · ' + Number(qt.quantity).toLocaleString('en-CA') + ' units' : '') + (qt.summary ? ' · ' + qt.summary : '');
       $('#qVal').textContent = money(tot, cur) + (qt.discounted_total != null ? ' (5% chat discount)' : '');
       $('#quotePill').classList.add('show'); setStage(3);
-      bridge.send('wp:quote', { status: 'quoted', quote_id: String(qt.id) });
+      if (/^accepted/.test(String(qt.outcome || ''))) { markAccepted(); setStage(4); }
+      bridge.send('wp:quote', { status: /^accepted/.test(String(qt.outcome || '')) ? 'accepted' : 'quoted', quote_id: String(qt.id) });
     }
     function detectQuote(text) {
       var id = text.match(/\bQ-[A-Z0-9]{8}\b/);
@@ -407,7 +411,7 @@
 
     function resetThread() {
       inner.innerHTML = ''; stage = 0; setStage(0); $('#quotePill').classList.remove('show');
-      var bb = $('#bookBtn'); bb.classList.remove('booked'); bb.disabled = false; bb.textContent = 'Book a call';
+      var bb = $('#bookBtn'); bb.classList.remove('booked'); bb.disabled = false; bb.textContent = 'Accept this quote';
       engaged = false; bookedNow = false; updateCallBtn();
     }
     /* New product inquiry: fresh chat, carry over contact details only */
@@ -504,7 +508,7 @@
 
     $('#callBtn').addEventListener('click', openCall);
     $('#closeChat').addEventListener('click', closeChat);
-    $('#bookBtn').addEventListener('click', function () { if ($('#bookBtn').classList.contains('booked')) return; ask(BOOK_MSG); });
+    $('#bookBtn').addEventListener('click', function () { if ($('#bookBtn').classList.contains('booked')) return; ask(acceptMsg()); });
     $('#newQuote').addEventListener('click', function () { newInquiry(''); input.focus(); });
     $('#historyBtn').addEventListener('click', function () { chat.classList.contains('show-history') ? closeHistory() : openHistory(); });
     $('#historyClose').addEventListener('click', closeHistory);
