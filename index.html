@@ -347,6 +347,20 @@ footer .logo{height:22px;opacity:.85}
   *,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}
   .reveal{opacity:1;transform:none}
 }
+/* Test-only tier override (this test site only; the embedded chat on landing pages has no such control) */
+.tier-test{display:flex;align-items:center;gap:6px;padding:6px 20px;border-bottom:1px dashed var(--line);font-size:12.5px;color:var(--muted);flex-wrap:wrap}
+.tier-test .tt-label{font-weight:600;margin-right:4px;text-transform:uppercase;letter-spacing:.6px;font-size:11px}
+.tier-test button{font:600 12.5px/1 'Figtree',sans-serif;padding:6px 11px;border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--text);cursor:pointer;min-height:28px}
+.tier-test button[aria-pressed="true"]{background:var(--green);border-color:var(--green);color:#fff}
+/* Live chat with a sales rep (assets/wp-live.js) */
+.agent-av{display:grid;place-items:center;background:var(--green);color:#fff;font:700 12px/1 'Outfit',sans-serif;letter-spacing:.3px}
+.agent-name{font:600 12px/1.3 'Figtree',sans-serif;color:var(--muted);margin:0 0 4px}
+.msg.live-note{justify-content:center}
+.live-note-text{font-size:13px;color:var(--muted);background:var(--surface-2);padding:6px 12px;border-radius:999px;text-align:center}
+.msg.live-banner{justify-content:center;align-items:center;gap:8px;font-size:13.5px;position:sticky;top:0;z-index:2;background:var(--bg);padding:6px 0;margin:0 0 14px}
+.live-dot{width:8px;height:8px;border-radius:50%;background:#12B76A;box-shadow:0 0 0 3px rgba(18,183,106,.2);animation:livepulse 1.6s ease-in-out infinite}
+@keyframes livepulse{50%{box-shadow:0 0 0 6px rgba(18,183,106,0)}}
+@media (prefers-reduced-motion:reduce){.live-dot{animation:none}}
 </style>
 </head>
 <body>
@@ -582,6 +596,10 @@ footer .logo{height:22px;opacity:.85}
   <div class="progress" id="progress" aria-label="Quote progress">
     <span data-s="0" class="now">Your product</span><span data-s="1">Your details</span><span data-s="2">Specs</span><span data-s="3">Price</span><span data-s="4">Next step</span>
   </div>
+  <div class="tier-test" id="tierTest" role="group" aria-label="Test only: force the customer tier">
+    <span class="tt-label">Test tier</span>
+    <button type="button" data-tier="" aria-pressed="true">Auto</button><button type="button" data-tier="A" aria-pressed="false">A</button><button type="button" data-tier="B" aria-pressed="false">B</button><button type="button" data-tier="S" aria-pressed="false">S</button><button type="button" data-tier="C" aria-pressed="false">C</button>
+  </div>
   <div class="history" id="history" aria-label="Past quote chats">
     <div class="history-inner">
       <div class="history-head"><h2>Your quote chats</h2><button class="btn btn-ghost" type="button" id="historyClose">Back to chat</button></div>
@@ -610,6 +628,7 @@ footer .logo{height:22px;opacity:.85}
   </div>
 </div>
 
+<script src="/assets/wp-live.js"></script>
 <script>
 (function () {
   var WEBHOOK_URL = 'https://n8n.sinaprinting.com/webhook/willowpack-quote-chat';
@@ -668,6 +687,17 @@ footer .logo{height:22px;opacity:.85}
   var q = new URLSearchParams(location.search);
   var metadata = { page_url: location.href.split('#')[0], utm_source: q.get('utm_source') || '', utm_medium: q.get('utm_medium') || '', utm_campaign: q.get('utm_campaign') || '', referrer: document.referrer || '' };
   try { metadata.timezone = Intl.DateTimeFormat().resolvedOptions().timeZone || ''; } catch (e) {}
+  /* Test only: force how Riley treats the customer's tier (A = no instant price, hand to a sales rep). Saved in this browser. */
+  function setForceTier(t) {
+    t = /^[ABSC]$/.test(t) ? t : '';
+    ss('wp_force_tier', t);
+    if (t) metadata.force_tier = t; else delete metadata.force_tier;
+    document.querySelectorAll('#tierTest button').forEach(function (b) { b.setAttribute('aria-pressed', String(b.dataset.tier === t)); });
+  }
+  setForceTier(ss('wp_force_tier') || '');
+  document.querySelectorAll('#tierTest button').forEach(function (b) { b.addEventListener('click', function () { setForceTier(b.dataset.tier); }); });
+  /* Sent to Riley (not shown) when no sales rep joined a live chat in time */
+  var LIVE_MISSED = '[system] No sales rep was free to join the live chat. Apologise briefly and offer to book a call with the rep or have the rep call them.';
 
   var chat = $('#chat'), inner = $('#threadInner'), thread = $('#thread'), input = $('#chatInput'), send = $('#chatSend');
   var busy = false, started = false, stage = 0, lastFocus = null, engaged = false, bookedNow = false;
@@ -807,19 +837,31 @@ footer .logo{height:22px;opacity:.85}
   }
 
   /* ---------- Sending ---------- */
-  function ask(text) {
+  /* Live chat with a sales rep (assets/wp-live.js). When no rep picks up, Riley is told quietly and offers a booking or a call back. */
+  var live = window.WPLive ? WPLive.attach({
+    getSession: function () { return sessionId; }, row: row, esc: esc, md: md, scrollEnd: scrollEnd,
+    setBusy: function (b) { send.disabled = b || !input.value.trim(); },
+    onMissed: function () { ask(LIVE_MISSED, { silent: true }); }
+  }) : { active: function () { return false; }, start: function () {}, resume: function () {}, reset: function () {}, send: function () {} };
+
+  /* opts.silent: a note for Riley that the customer does not see */
+  function ask(text, opts) {
     text = String(text || '').trim();
+    opts = opts || {};
     if (busy || !text) return;
     if (!chat.classList.contains('open')) openChat();
+    /* While a sales rep has the chat, the customer's messages go to the rep, not to Riley. */
+    if (!opts.silent && live.active()) { addUser(text); engaged = true; live.send(text); return; }
     started = true; busy = true; send.disabled = true;
     remember(sessionId, text);
-    addUser(text); engaged = true; updateCallBtn();
+    if (!opts.silent) addUser(text);
+    engaged = true; updateCallBtn();
     var t = row('bot'); t.innerHTML = '<img class="avatar" src="' + MARK + '" alt=""><div class="bubble"><span class="typing" aria-label="Assistant is typing"><i></i><i></i><i></i></span></div>'; scrollEnd();
     fetch(WEBHOOK_URL, {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ action: 'sendMessage', sessionId: sessionId, chatInput: text, metadata: metadata })
     }).then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
-      .then(function (d) { if (Array.isArray(d)) d = d[0] || {}; t.remove(); addBot(d.output || d.text || 'I didn’t catch that. Could you rephrase?', null, d.quote || null); if (d.meeting) showMeeting(d.meeting); })
+      .then(function (d) { if (Array.isArray(d)) d = d[0] || {}; t.remove(); addBot(d.output || d.text || 'I didn’t catch that. Could you rephrase?', null, d.quote || null); if (d.meeting) showMeeting(d.meeting); if (d.live && d.live.status) live.start(d.live); })
       .catch(function () {
         t.remove();
         var e = row('bot error');
@@ -839,6 +881,7 @@ footer .logo{height:22px;opacity:.85}
       .then(function (d) { return Array.isArray(d) ? (d[0] || {}) : d; });
   }
   function resetThread() {
+    live.reset();
     inner.innerHTML = ''; stage = 0; setStage(0); $('#quotePill').classList.remove('show');
     var bb = $('#bookBtn'); bb.classList.remove('booked'); bb.disabled = false; bb.textContent = 'Accept this quote';
     engaged = false; bookedNow = false; updateCallBtn();
@@ -878,6 +921,7 @@ footer .logo{height:22px;opacity:.85}
       engaged = turns.some(function (tu) { return tu.user; }); updateCallBtn();
       if (d.quote) showQuote(d.quote);
       var me = (d.sessions || [])[0]; if (me && me.meeting_time) showMeeting({ time: me.meeting_time, rep: me.meeting_rep });
+      live.resume();
     }).catch(function () { t.remove(); addBot('I couldn’t load that earlier chat right now. You can keep going here, or start a new quote.'); })
       .then(function () { busy = false; send.disabled = !input.value.trim(); scrollEnd(); if (pendingAsk) { var a = pendingAsk; pendingAsk = ''; ask(a); } });
   }
