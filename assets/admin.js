@@ -50,8 +50,21 @@
     document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !menu.hidden) { open(false); btn.focus(); } });
   });
 
+  /* ---------- collapsible side menu (desktop): icon-only rail, remembered per browser ---------- */
+  (function () {
+    var root = document.documentElement, b = document.getElementById('sideMinBtn'); if (!b) return;
+    Array.prototype.forEach.call(document.querySelectorAll('.side-nav a'), function (a) { if (!a.title) a.title = a.textContent.replace(/\s+/g, ' ').trim(); });
+    function set(min) {
+      root.classList.toggle('side-min', min);
+      b.setAttribute('aria-pressed', String(min)); b.setAttribute('aria-label', min ? 'Expand menu' : 'Collapse menu'); b.title = min ? 'Expand menu' : 'Collapse menu';
+      try { localStorage.setItem('wpa_side_min', min ? '1' : '0'); } catch (e) {}
+    }
+    set(root.classList.contains('side-min'));
+    b.addEventListener('click', function () { set(!root.classList.contains('side-min')); });
+  })();
+
   /* ---------- routing + mobile drawer ---------- */
-  var TABS = ['demo', 'chat-box', 'quotes-button', 'faq', 'map', 'flow', 'conversations', 'live'];
+  var TABS = ['demo', 'chat-box', 'quotes-button', 'faq', 'map', 'flow', 'conversations', 'live', 'live-agents'];
   var side = $('#side'), scrim = $('#scrim'), menuBtn = $('#menuBtn');
   function drawer(open) { side.classList.toggle('open', open); scrim.classList.toggle('open', open); menuBtn.setAttribute('aria-expanded', open ? 'true' : 'false'); }
   menuBtn.addEventListener('click', function () { drawer(!side.classList.contains('open')); });
@@ -67,7 +80,7 @@
     drawer(false);
     if (t === 'demo') { var f = $('#demoFrame'); if (!f.src) f.src = f.dataset.src; }
     if (t === 'conversations') Conv.show();
-    if (window.LiveDesk) LiveDesk.visible(t === 'live');
+    if (window.LiveDesk) LiveDesk.visible(t === 'live' || t === 'live-agents', t);
     if (window.WPMap) { if (t === 'map') WPMap.show('system'); else if (t === 'flow') WPMap.show('flow'); else WPMap.hideAll(); }
     if (t === 'chat-box' || t === 'quotes-button') ready(function () { WillowpackChat.scan(); });
     scrollTo(0, 0);

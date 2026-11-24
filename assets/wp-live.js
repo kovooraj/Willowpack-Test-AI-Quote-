@@ -46,13 +46,14 @@
       stop(); hideBanner();
       var was = status; status = kind;
       if (kind === 'missed') { if (o.onMissed) o.onMissed(); }
-      else if (kind === 'ended' && was !== 'ended') note((agentName || 'The rep') + ' has left the chat. Riley is back to help with anything else.');
+      else if (kind === 'ended' && was !== 'ended') note('Riley is back to help with anything else.');
     }
     function apply(d) {
       (d.messages || []).forEach(function (m) {
         after = Math.max(after, m.id || 0);
         if (seen[m.id]) return; seen[m.id] = 1;
         if (m.sender === 'agent') agentMsg(m);
+        else if (m.sender === 'system' && !/picked up in time|asked to chat with a sales rep/i.test(m.body)) note(m.body); /* e.g. "Dan joined the chat." */
       });
       if (d.agent_name) agentName = d.agent_name;
       if (d.status === 'active' && status !== 'active') {
