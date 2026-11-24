@@ -17,6 +17,7 @@
 const { readSession, json, rpc, dbSecret, sameOrigin, readBody } = require('./_lib');
 
 const SID = /^[A-Za-z0-9-]{8,128}$/;
+const STALE_MS = 3 * 60 * 1000;
 const clean = (t, n) => String(t || '').replace(/\u0000/g, '').trim().slice(0, n);
 
 module.exports = async (req, res) => {
@@ -28,8 +29,14 @@ module.exports = async (req, res) => {
       if (q.queue) {
         if (!staff) return json(res, 401, { error: 'sign in required' });
         const presence = await rpc('live_agent_update', { p_email: staff.email, p_name: staff.name, p_heartbeat: true });
-        const queue = await rpc('live_queue', {});
-        return json(res, 200, { me: presence.me, agents: presence.agents, queue: queue || [], email: staff.email });
+        let queue = (await rpc('live_queue', {})) || [];
+        // A chat still "waiting" after 3 minutes means the customer's page closed before its own 2 minute timeout ran: mark it missed.
+        const stale = queue.filter((c) => c.status === 'waiting' && Date.now() - Date.parse(c.requested_at || 0) > STALE_MS);
+        if (stale.length) {
+          await Promise.all(stale.map((c) => rpc('live_set_status', { p_session_id: c.session_id, p_status: 'missed' }).catch(() => null)));
+          queue = (await rpc('live_queue', {})) || [];
+        }
+        return json(res, 200, { me: presence.me, agents: presence.agents, queue, email: staff.email, name: staff.name || '' });
       }
       const sid = String(q.sid || '');
       if (!SID.test(sid)) return json(res, 400, { error: 'bad session' });
