@@ -51,7 +51,7 @@
   });
 
   /* ---------- routing + mobile drawer ---------- */
-  var TABS = ['demo', 'chat-box', 'quotes-button', 'faq', 'map', 'flow', 'conversations'];
+  var TABS = ['demo', 'chat-box', 'quotes-button', 'faq', 'map', 'flow', 'conversations', 'live'];
   var side = $('#side'), scrim = $('#scrim'), menuBtn = $('#menuBtn');
   function drawer(open) { side.classList.toggle('open', open); scrim.classList.toggle('open', open); menuBtn.setAttribute('aria-expanded', open ? 'true' : 'false'); }
   menuBtn.addEventListener('click', function () { drawer(!side.classList.contains('open')); });
@@ -67,6 +67,7 @@
     drawer(false);
     if (t === 'demo') { var f = $('#demoFrame'); if (!f.src) f.src = f.dataset.src; }
     if (t === 'conversations') Conv.show();
+    if (window.LiveDesk) LiveDesk.visible(t === 'live');
     if (window.WPMap) { if (t === 'map') WPMap.show('system'); else if (t === 'flow') WPMap.show('flow'); else WPMap.hideAll(); }
     if (t === 'chat-box' || t === 'quotes-button') ready(function () { WillowpackChat.scan(); });
     scrollTo(0, 0);

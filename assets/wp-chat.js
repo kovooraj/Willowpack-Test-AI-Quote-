@@ -18,6 +18,8 @@
   /* Follow-up email "Approve my quote" links (&ask=approve): reopen the chat and ask to review the quote; the customer still confirms in the chat */
   var APPROVE_MSG = 'I’m back to review my quote and approve it.';
   var ASK_MSG = { book: BOOK_MSG, approve: APPROVE_MSG };
+  /* Sent to Riley (not shown) when no sales rep joined a live chat in time */
+  var LIVE_MISSED = '[system] No sales rep was free to join the live chat. Apologise briefly and offer to book a call with the rep or have the rep call them.';
   /* Quote card button: accepting here hands the quote to sales automatically (Salesforce Account/Opportunity + Portal quote). */
   function acceptMsg() { var m = (document.getElementById('qId') || {}).textContent; m = m && m.match(/Q-[A-Z0-9]{8}/); return 'I accept ' + (m ? 'quote ' + m[0] : 'this quote') + ' at the price shown. Please go ahead.'; }
   function markAccepted() { var bb = document.getElementById('bookBtn'); if (!bb) return; bb.classList.add('booked'); bb.disabled = true; bb.textContent = '✓ Quote accepted'; }
@@ -385,18 +387,30 @@
       bridge.send('wp:quote', { status: 'meeting_booked' });
     }
 
-    function ask(text) {
+    /* Live chat with a sales rep (assets/wp-live.js). When no rep picks up, Riley is told quietly and offers a booking or a call back. */
+    var live = window.WPLive ? WPLive.attach({
+      getSession: function () { return sessionId; }, row: row, esc: esc, md: md, scrollEnd: scrollEnd,
+      setBusy: function (b) { send.disabled = b || !input.value.trim(); },
+      onMissed: function () { ask(LIVE_MISSED, { silent: true }); }
+    }) : { active: function () { return false; }, start: function () {}, resume: function () {}, reset: function () {}, send: function () {} };
+
+    /* opts.silent: a note for Riley that the customer does not see (e.g. no live rep picked up) */
+    function ask(text, opts) {
       text = String(text || '').trim();
+      opts = opts || {};
       if (busy || !text) return;
+      /* While a sales rep has the chat, the customer's messages go to the rep, not to Riley. */
+      if (!opts.silent && live.active()) { addUser(text); engaged = true; live.send(text); return; }
       started = true; busy = true; send.disabled = true; lastSent = text;
       remember(sessionId, text); announceSession();
-      addUser(text); engaged = true; updateCallBtn();
+      if (!opts.silent) addUser(text);
+      engaged = true; updateCallBtn();
       var t = row('bot'); t.innerHTML = '<img class="avatar" src="' + MARK + '" alt=""><div class="bubble"><span class="typing" aria-label="Assistant is typing"><i></i><i></i><i></i></span></div>'; scrollEnd();
       var payload = { action: 'sendMessage', sessionId: sessionId, chatInput: text, metadata: metadata };
       if (debugOn()) { try { console.info('[willowpack] → n8n', JSON.parse(JSON.stringify(payload))); } catch (e) {} }
       fetch(WEBHOOK_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
         .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
-        .then(function (d) { if (Array.isArray(d)) d = d[0] || {}; t.remove(); addBot(d.output || d.text || 'I didn’t catch that. Could you rephrase?', null, d.quote || null); if (d.meeting) showMeeting(d.meeting); })
+        .then(function (d) { if (Array.isArray(d)) d = d[0] || {}; t.remove(); addBot(d.output || d.text || 'I didn’t catch that. Could you rephrase?', null, d.quote || null); if (d.meeting) showMeeting(d.meeting); if (d.live && d.live.status) live.start(d.live); })
         .catch(function () {
           t.remove();
           var e = row('bot error');
@@ -410,6 +424,7 @@
     }
 
     function resetThread() {
+      live.reset();
       inner.innerHTML = ''; stage = 0; setStage(0); $('#quotePill').classList.remove('show');
       var bb = $('#bookBtn'); bb.classList.remove('booked'); bb.disabled = false; bb.textContent = 'Accept this quote';
       engaged = false; bookedNow = false; updateCallBtn();
@@ -440,6 +455,7 @@
         if (d.quote) showQuote(d.quote);
         var me = (d.sessions || [])[0]; if (me && me.meeting_time) showMeeting({ time: me.meeting_time, rep: me.meeting_rep });
         announceSession();
+        live.resume();
       }).catch(function () { t.remove(); addBot('I couldn’t load that earlier chat right now. You can keep going here, or start a new quote.'); })
         .then(function () { busy = false; send.disabled = !input.value.trim(); scrollEnd(); if (pendingAsk) { var a = pendingAsk; pendingAsk = ''; ask(a); } });
     }

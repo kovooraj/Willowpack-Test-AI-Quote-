@@ -209,3 +209,12 @@ a{color:inherit}
 .embedded .chat{opacity:1;visibility:visible;transform:none;transition:none}
 .embedded .chat-bar{gap:10px;padding:10px 14px}
 @media (max-width:420px){.embedded .chat-bar .logo{width:92px;height:auto}.embedded .chat-bar .btn{padding:7px 10px}}
+/* Live chat with a sales rep (assets/wp-live.js) */
+.agent-av{display:grid;place-items:center;background:var(--green);color:#fff;font:700 12px/1 'Outfit',sans-serif;letter-spacing:.3px}
+.agent-name{font:600 12px/1.3 'Figtree',sans-serif;color:var(--muted);margin:0 0 4px}
+.msg.live-note{justify-content:center}
+.live-note-text{font-size:13px;color:var(--muted);background:var(--surface-2,rgba(127,127,127,.08));padding:6px 12px;border-radius:999px;text-align:center}
+.msg.live-banner{justify-content:center;align-items:center;gap:8px;font-size:13.5px;color:var(--text);position:sticky;top:0;z-index:2;background:var(--bg);padding:6px 0;margin:0 0 14px}
+.live-dot{width:8px;height:8px;border-radius:50%;background:#12B76A;box-shadow:0 0 0 3px rgba(18,183,106,.2);animation:livepulse 1.6s ease-in-out infinite}
+@keyframes livepulse{50%{box-shadow:0 0 0 6px rgba(18,183,106,0)}}
+@media (prefers-reduced-motion:reduce){.live-dot{animation:none}}
