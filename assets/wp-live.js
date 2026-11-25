@@ -9,11 +9,14 @@
  * Usage: var live = WPLive.attach({ getSession, row, esc, md, scrollEnd, setBusy, onMissed });
  *        live.start(info)  -> after a Riley reply with d.live;   live.resume() -> after loading a saved chat;
  *        live.active()     -> true while customer messages should go to the rep;  live.send(text).
+ * Hesitation nudge (Tier A): var nudge = WPLive.nudger({ getSession, fire }); nudge.arm(reply) after each Riley reply,
+ *   nudge.cancel() when the customer types or sends. When a reply has nudge: true and the customer does nothing for
+ *   NUDGE_MS, fire() runs once per chat (the page quietly asks Riley to send the nudge from step 8b).
  */
 (function () {
   'use strict';
   var API = '/api/live';
-  var POLL_MS = 3000, WAIT_MS = 120000;
+  var POLL_MS = 3000, WAIT_MS = 60000, NUDGE_MS = 45000;
 
   function attach(o) {
     var sid = '', status = 'none', after = 0, timer = null, waitTimer = null, agentName = '', banner = null, seen = {};
@@ -113,5 +116,24 @@
     };
   }
 
-  window.WPLive = { attach: attach };
+  function nudger(o) {
+    var timer = null;
+    function key() { return 'wp_nudged_' + o.getSession(); }
+    function done() { try { return window.sessionStorage.getItem(key()) === '1'; } catch (e) { return false; } }
+    function cancel() { if (timer) clearTimeout(timer); timer = null; }
+    return {
+      cancel: cancel,
+      arm: function (d) {
+        cancel();
+        if (!d || !d.nudge || done()) return;
+        timer = setTimeout(function () {
+          timer = null;
+          try { window.sessionStorage.setItem(key(), '1'); } catch (e) {}
+          o.fire();
+        }, NUDGE_MS);
+      }
+    };
+  }
+
+  window.WPLive = { attach: attach, nudger: nudger };
 })();

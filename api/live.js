@@ -3,7 +3,7 @@
  * Customer side (no login; the session id is the chat's random UUID and only works while a live chat is open):
  *   GET  /api/live?sid=&after=            -> { status, agent_name, requested_at, messages[] }
  *   POST /api/live {action:'send', sid, text}
- *   POST /api/live {action:'timeout', sid}   no rep joined in time -> 'missed' (only after 90 s of waiting)
+ *   POST /api/live {action:'timeout', sid}   no rep joined in time -> 'missed' (only after 45 s of waiting; the page gives up at 60 s)
  *   POST /api/live {action:'leave', sid}
  *
  * Staff side (signed in to /admin with Google):
@@ -66,7 +66,7 @@ module.exports = async (req, res) => {
       if (action === 'timeout') {
         const cur = await rpc('live_poll', { p_session_id: sid, p_after: 0 });
         if (cur.status !== 'waiting') return json(res, 200, { ok: false, status: cur.status });
-        if (Date.now() - Date.parse(cur.requested_at || 0) < 90000) return json(res, 200, { ok: false, status: 'waiting' });
+        if (Date.now() - Date.parse(cur.requested_at || 0) < 45000) return json(res, 200, { ok: false, status: 'waiting' });
         return json(res, 200, await rpc('live_set_status', { p_session_id: sid, p_status: 'missed' }));
       }
       return json(res, 200, await rpc('live_set_status', { p_session_id: sid, p_status: 'ended', p_agent_name: 'the customer' }));

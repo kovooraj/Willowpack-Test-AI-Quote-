@@ -698,6 +698,7 @@ footer .logo{height:22px;opacity:.85}
   document.querySelectorAll('#tierTest button').forEach(function (b) { b.addEventListener('click', function () { setForceTier(b.dataset.tier); }); });
   /* Sent to Riley (not shown) when no sales rep joined a live chat in time */
   var LIVE_MISSED = '[system] No sales rep was free to join the live chat. Apologise briefly and offer to book a call with the rep or have the rep call them.';
+  var NUDGE = '[system] Hesitation: the customer has not picked an option for about 45 seconds. Send the hesitation nudge from step 8b, once.';
 
   var chat = $('#chat'), inner = $('#threadInner'), thread = $('#thread'), input = $('#chatInput'), send = $('#chatSend');
   var busy = false, started = false, stage = 0, lastFocus = null, engaged = false, bookedNow = false;
@@ -843,11 +844,14 @@ footer .logo{height:22px;opacity:.85}
     setBusy: function (b) { send.disabled = b || !input.value.trim(); },
     onMissed: function () { ask(LIVE_MISSED, { silent: true }); }
   }) : { active: function () { return false; }, start: function () {}, resume: function () {}, reset: function () {}, send: function () {} };
+  /* Tier A hesitation nudge: Riley's reply carries nudge: true; if the customer does nothing for 45 s, Riley is asked (quietly) to nudge once. */
+  var nudge = window.WPLive && WPLive.nudger ? WPLive.nudger({ getSession: function () { return sessionId; }, fire: function () { if (!busy && !live.active()) ask(NUDGE, { silent: true }); } }) : { arm: function () {}, cancel: function () {} };
 
   /* opts.silent: a note for Riley that the customer does not see */
   function ask(text, opts) {
     text = String(text || '').trim();
     opts = opts || {};
+    nudge.cancel();
     if (busy || !text) return;
     if (!chat.classList.contains('open')) openChat();
     /* While a sales rep has the chat, the customer's messages go to the rep, not to Riley. */
@@ -861,7 +865,7 @@ footer .logo{height:22px;opacity:.85}
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ action: 'sendMessage', sessionId: sessionId, chatInput: text, metadata: metadata })
     }).then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
-      .then(function (d) { if (Array.isArray(d)) d = d[0] || {}; t.remove(); addBot(d.output || d.text || 'I didn’t catch that. Could you rephrase?', null, d.quote || null); if (d.meeting) showMeeting(d.meeting); if (d.live && d.live.status) live.start(d.live); })
+      .then(function (d) { if (Array.isArray(d)) d = d[0] || {}; t.remove(); addBot(d.output || d.text || 'I didn’t catch that. Could you rephrase?', null, d.quote || null); if (d.meeting) showMeeting(d.meeting); if (d.live && d.live.status) live.start(d.live); else nudge.arm(d); })
       .catch(function () {
         t.remove();
         var e = row('bot error');
@@ -881,7 +885,7 @@ footer .logo{height:22px;opacity:.85}
       .then(function (d) { return Array.isArray(d) ? (d[0] || {}) : d; });
   }
   function resetThread() {
-    live.reset();
+    live.reset(); nudge.cancel();
     inner.innerHTML = ''; stage = 0; setStage(0); $('#quotePill').classList.remove('show');
     var bb = $('#bookBtn'); bb.classList.remove('booked'); bb.disabled = false; bb.textContent = 'Accept this quote';
     engaged = false; bookedNow = false; updateCallBtn();
@@ -992,7 +996,7 @@ footer .logo{height:22px;opacity:.85}
   /* ---------- Inputs ---------- */
   function wire(form, ta, btn, onSend) {
     function rs() { ta.style.height = 'auto'; ta.style.height = Math.min(ta.scrollHeight, 180) + 'px'; }
-    ta.addEventListener('input', function () { rs(); btn.disabled = (ta === input && busy) || !ta.value.trim(); });
+    ta.addEventListener('input', function () { if (ta === input) nudge.cancel(); rs(); btn.disabled = (ta === input && busy) || !ta.value.trim(); });
     ta.addEventListener('keydown', function (e) { if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) { e.preventDefault(); form.requestSubmit ? form.requestSubmit() : form.dispatchEvent(new Event('submit', { cancelable: true })); } });
     form.addEventListener('submit', function (e) { e.preventDefault(); var v = ta.value; if (!v.trim()) return; ta.value = ''; rs(); btn.disabled = true; onSend(v); });
   }
