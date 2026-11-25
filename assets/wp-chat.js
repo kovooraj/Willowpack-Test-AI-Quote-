@@ -20,6 +20,7 @@
   var ASK_MSG = { book: BOOK_MSG, approve: APPROVE_MSG };
   /* Sent to Riley (not shown) when no sales rep joined a live chat in time */
   var LIVE_MISSED = '[system] No sales rep was free to join the live chat. Apologise briefly and offer to book a call with the rep or have the rep call them.';
+  var NUDGE = '[system] Hesitation: the customer has not picked an option for about 45 seconds. Send the hesitation nudge from step 8b, once.';
   /* Quote card button: accepting here hands the quote to sales automatically (Salesforce Account/Opportunity + Portal quote). */
   function acceptMsg() { var m = (document.getElementById('qId') || {}).textContent; m = m && m.match(/Q-[A-Z0-9]{8}/); return 'I accept ' + (m ? 'quote ' + m[0] : 'this quote') + ' at the price shown. Please go ahead.'; }
   function markAccepted() { var bb = document.getElementById('bookBtn'); if (!bb) return; bb.classList.add('booked'); bb.disabled = true; bb.textContent = '✓ Quote accepted'; }
@@ -393,11 +394,14 @@
       setBusy: function (b) { send.disabled = b || !input.value.trim(); },
       onMissed: function () { ask(LIVE_MISSED, { silent: true }); }
     }) : { active: function () { return false; }, start: function () {}, resume: function () {}, reset: function () {}, send: function () {} };
+    /* Tier A hesitation nudge: Riley's reply carries nudge: true; if the customer does nothing for 45 s, Riley is asked (quietly) to nudge once. */
+    var nudge = window.WPLive && WPLive.nudger ? WPLive.nudger({ getSession: function () { return sessionId; }, fire: function () { if (!busy && !live.active()) ask(NUDGE, { silent: true }); } }) : { arm: function () {}, cancel: function () {} };
 
     /* opts.silent: a note for Riley that the customer does not see (e.g. no live rep picked up) */
     function ask(text, opts) {
       text = String(text || '').trim();
       opts = opts || {};
+      nudge.cancel();
       if (busy || !text) return;
       /* While a sales rep has the chat, the customer's messages go to the rep, not to Riley. */
       if (!opts.silent && live.active()) { addUser(text); engaged = true; live.send(text); return; }
@@ -410,7 +414,7 @@
       if (debugOn()) { try { console.info('[willowpack] → n8n', JSON.parse(JSON.stringify(payload))); } catch (e) {} }
       fetch(WEBHOOK_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
         .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
-        .then(function (d) { if (Array.isArray(d)) d = d[0] || {}; t.remove(); addBot(d.output || d.text || 'I didn’t catch that. Could you rephrase?', null, d.quote || null); if (d.meeting) showMeeting(d.meeting); if (d.live && d.live.status) live.start(d.live); })
+        .then(function (d) { if (Array.isArray(d)) d = d[0] || {}; t.remove(); addBot(d.output || d.text || 'I didn’t catch that. Could you rephrase?', null, d.quote || null); if (d.meeting) showMeeting(d.meeting); if (d.live && d.live.status) live.start(d.live); else nudge.arm(d); })
         .catch(function () {
           t.remove();
           var e = row('bot error');
@@ -424,7 +428,7 @@
     }
 
     function resetThread() {
-      live.reset();
+      live.reset(); nudge.cancel();
       inner.innerHTML = ''; stage = 0; setStage(0); $('#quotePill').classList.remove('show');
       var bb = $('#bookBtn'); bb.classList.remove('booked'); bb.disabled = false; bb.textContent = 'Accept this quote';
       engaged = false; bookedNow = false; updateCallBtn();
@@ -518,7 +522,7 @@
 
     /* ---------- Inputs ---------- */
     function rs() { input.style.height = 'auto'; input.style.height = Math.min(input.scrollHeight, 180) + 'px'; }
-    input.addEventListener('input', function () { rs(); send.disabled = busy || !input.value.trim(); });
+    input.addEventListener('input', function () { nudge.cancel(); rs(); send.disabled = busy || !input.value.trim(); });
     input.addEventListener('keydown', function (e) { if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) { e.preventDefault(); var f = $('#chatForm'); f.requestSubmit ? f.requestSubmit() : f.dispatchEvent(new Event('submit', { cancelable: true })); } });
     $('#chatForm').addEventListener('submit', function (e) { e.preventDefault(); var v = input.value; if (!v.trim()) return; input.value = ''; rs(); send.disabled = true; ask(v); });
 
